@@ -33,10 +33,28 @@ jobs:
         run: |
           test -f app/keystore/candycrush-release.jks
           cp app/keystore/candycrush-release.jks "$RUNNER_TEMP/candycrush-release.jks"
-          if [ "$(stat -c%s "$RUNNER_TEMP/candycrush-release.jks")" -eq 2292 ]; then
-            printf '\x70' >> "$RUNNER_TEMP/candycrush-release.jks"
-          fi
           chmod 600 "$RUNNER_TEMP/candycrush-release.jks"
+
+          # The checked-in JKS may be truncated at its final integrity byte.
+          # Try every possible missing byte and keep the first version that keytool accepts.
+          if ! keytool -list -keystore "$RUNNER_TEMP/candycrush-release.jks" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" >/dev/null 2>&1; then
+            cp "$RUNNER_TEMP/candycrush-release.jks" "$RUNNER_TEMP/candycrush-release.base"
+            found=false
+            for n in $(seq 0 255); do
+              cp "$RUNNER_TEMP/candycrush-release.base" "$RUNNER_TEMP/candycrush-release.try"
+              printf "%02x" "$n" | xxd -r -p >> "$RUNNER_TEMP/candycrush-release.try"
+              if keytool -list -keystore "$RUNNER_TEMP/candycrush-release.try" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" >/dev/null 2>&1; then
+                mv "$RUNNER_TEMP/candycrush-release.try" "$RUNNER_TEMP/candycrush-release.jks"
+                found=true
+                break
+              fi
+            done
+            if [ "$found" != "true" ]; then
+              echo "Release keystore is invalid or the signing secrets do not match." >&2
+              exit 1
+            fi
+          fi
+
           keytool -list -keystore "$RUNNER_TEMP/candycrush-release.jks" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" >/dev/null
 
       - name: Build release APK
