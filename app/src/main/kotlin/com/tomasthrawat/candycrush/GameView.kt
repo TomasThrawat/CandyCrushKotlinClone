@@ -19,6 +19,7 @@ class GameView(context: Context) : View(context) {
     private val tone=ToneGenerator(AudioManager.STREAM_MUSIC,70)
     private var screen=Screen.MENU
     private var level=1; private var score=0; private var moves=25; private var target=625
+    private var unlockedLevel=prefs.getInt("unlocked_level",1).coerceAtLeast(1)
     private var coins=prefs.getInt("coins",0); private var hammer=prefs.getInt("hammer",2); private var shuffle=prefs.getInt("shuffle",1)
     private var sr=-1; private var sc=-1; private var downX=0f; private var downY=0f
     private var anim=0L; private var ar=-1; private var ac=-1; private var br=-1; private var bc=-1
@@ -61,8 +62,9 @@ class GameView(context: Context) : View(context) {
             for(col in 0..3){
                 val levelNo=row*4+col+1
                 val l=width*.06f+col*width*.235f
-                box(c,l,y,l+width*.19f,y+height*.065f,0xFFFFD6E8.toInt())
-                text(c,levelNo.toString(),l+width*.095f,y+height*.044f,width*.034f,Color.WHITE,true)
+                box(c,l,y,l+width*.19f,y+height*.065f,if(levelNo<=unlockedLevel) 0xFFFFD6E8.toInt() else 0xFFE9E1E6.toInt())
+                if(levelNo<=unlockedLevel) text(c,levelNo.toString(),l+width*.095f,y+height*.044f,width*.034f,Color.WHITE,true)
+                else text(c,"LOCKED",l+width*.095f,y+height*.044f,width*.022f,0xFF9B8190.toInt(),true)
             }
         }
         btn(c,.2f,.91f,.8f,.98f,"BACK")
@@ -117,46 +119,74 @@ class GameView(context: Context) : View(context) {
     private fun box(c:Canvas,l:Float,t:Float,r:Float,bb:Float,color:Int){paint.style=Paint.Style.FILL;paint.color=color;c.drawRoundRect(l,t,r,bb,14f,14f,paint)}
     private fun text(c:Canvas,s:String,x:Float,y:Float,size:Float,color:Int,bold:Boolean){paint.color=color;paint.textSize=size;paint.textAlign=Paint.Align.CENTER;paint.typeface=Typeface.create("sans",if(bold)Typeface.BOLD else Typeface.NORMAL);c.drawText(s,x,y,paint)}
     private fun candy(c:Canvas,x:Float,y:Float,r:Float,v:Int){
-        val body=when(v%10){
-            0->0xFFE85D68.toInt()   // strawberry
-            1->0xFFF2C14E.toInt()   // lemon
-            2->0xFF5B8DEF.toInt()   // blueberry
-            3->0xFF70B77A.toInt()   // apple
-            4->0xFFD889C8.toInt()   // flower
-            5->0xFFB97850.toInt()   // cookie
-            6->0xFF62C5C9.toInt()   // wrapped candy
-            7->0xFF9A72D6.toInt()   // gem
-            8->0xFFFF8C42.toInt()   // orange
-            else->0xFFE6A15A.toInt() // donut
-        }
-        paint.color=body
-        when(v%10){
-            0->drawStrawberry(c,x,y,r)
-            1->drawLemon(c,x,y,r)
-            2->drawBlueberry(c,x,y,r)
-            3->drawApple(c,x,y,r)
-            4->drawFlower(c,x,y,r)
-            5->drawCookie(c,x,y,r)
-            6->drawWrappedCandy(c,x,y,r)
-            7->drawGem(c,x,y,r)
-            8->drawOrange(c,x,y,r)
-            else->drawDonut(c,x,y,r)
+        when(v.mod(10)){
+            0->drawStrawberry(c,x,y,r,0xFFE94F64.toInt())
+            1->drawLemon(c,x,y,r,0xFFFFC94A.toInt())
+            2->drawBlueberry(c,x,y,r,0xFF5C7CFA.toInt())
+            3->drawApple(c,x,y,r,0xFF63B86B.toInt())
+            4->drawFlower(c,x,y,r,0xFFD889D4.toInt())
+            5->drawCookie(c,x,y,r,0xFFB97850.toInt())
+            6->drawWrappedCandy(c,x,y,r,0xFF59C7C9.toInt())
+            7->drawGem(c,x,y,r,0xFF9B72E8.toInt())
+            8->drawOrange(c,x,y,r,0xFFFF9147.toInt())
+            else->drawDonut(c,x,y,r,0xFFFFA66B.toInt())
         }
     }
-    private fun drawStrawberry(c:Canvas,x:Float,y:Float,r:Float){
-        val p=Path();p.moveTo(x,y+r);p.cubicTo(x-r*1.05f,y+r*.25f,x-r*.75f,y-r*.65f,x,y-r*.35f);p.cubicTo(x+r*.75f,y-r*.65f,x+r*1.05f,y+r*.25f,x,y+r);p.close();c.drawPath(p,paint)
-        paint.color=0xFF5C9E52.toInt();val leaf=Path();leaf.moveTo(x,y-r*.42f);leaf.lineTo(x-r*.48f,y-r*.78f);leaf.lineTo(x-r*.08f,y-r*.78f);leaf.lineTo(x,y-r*1.02f);leaf.lineTo(x+r*.08f,y-r*.78f);leaf.lineTo(x+r*.48f,y-r*.78f);leaf.close();c.drawPath(leaf,paint)
-        paint.color=0xFFFFF0C7.toInt();for(i in -1..1)c.drawOval(x+i*r*.28f,y-r*.05f,x+i*r*.28f+r*.06f,y+r*.13f,paint)
+    private fun drawStrawberry(c:Canvas,x:Float,y:Float,r:Float,color:Int){
+        paint.color=color
+        val p=Path();p.moveTo(x,y+r);p.cubicTo(x-r*1.05f,y+r*.25f,x-r*.78f,y-r*.65f,x,y-r*.28f);p.cubicTo(x+r*.78f,y-r*.65f,x+r*1.05f,y+r*.25f,x,y+r);p.close();c.drawPath(p,paint)
+        paint.color=0xFF4E9A55.toInt();val leaf=Path();leaf.moveTo(x,y-r*.32f);leaf.lineTo(x-r*.48f,y-r*.75f);leaf.lineTo(x-r*.10f,y-r*.68f);leaf.lineTo(x,y-r*.98f);leaf.lineTo(x+r*.12f,y-r*.68f);leaf.lineTo(x+r*.48f,y-r*.75f);leaf.close();c.drawPath(leaf,paint)
+        paint.color=0xFFFFF2D0.toInt();for(i in -1..1)c.drawOval(x+i*r*.28f,y-r*.02f,x+i*r*.28f+r*.055f,y+r*.13f,paint)
     }
-    private fun drawLemon(c:Canvas,x:Float,y:Float,r:Float){c.drawOval(x-r*.9f,y-r*.72f,x+r*.9f,y+r*.72f,paint);paint.color=0x55FFFFFF;c.drawOval(x-r*.48f,y-r*.48f,x-r*.08f,y-r*.12f,paint);paint.color=0x55FFFFFF;c.drawOval(x+r*.18f,y+r*.10f,x+r*.50f,y+r*.35f,paint)}
-    private fun drawBlueberry(c:Canvas,x:Float,y:Float,r:Float){paint.color=0x66FFFFFF;c.drawOval(x-r*.52f,y-r*.55f,x-r*.18f,y-r*.18f,paint);paint.color=0xFF6B4E9B.toInt();val p=Path();p.moveTo(x-r*.38f,y-r*.68f);p.lineTo(x,y-r*.9f);p.lineTo(x+r*.38f,y-r*.68f);p.lineTo(x+r*.12f,y-r*.42f);p.lineTo(x-r*.12f,y-r*.42f);p.close();c.drawPath(p,paint)}
-    private fun drawApple(c:Canvas,x:Float,y:Float,r:Float){val p=Path();p.moveTo(x,y+r*.9f);p.cubicTo(x-r*1.05f,y+r*.35f,x-r*.78f,y-r*.72f,x,y-r*.35f);p.cubicTo(x+r*.78f,y-r*.72f,x+r*1.05f,y+r*.35f,x,y+r*.9f);p.close();c.drawPath(p,paint);paint.color=0xFF5C9E52.toInt();c.drawOval(x+r*.05f,y-r*.85f,x+r*.55f,y-r*.45f,paint);paint.color=0xFF6D4938.toInt();c.drawRoundRect(x-r*.06f,y-r*.95f,x+r*.06f,y-r*.63f,4f,4f,paint)}
-    private fun drawFlower(c:Canvas,x:Float,y:Float,r:Float){for(i in 0..5){val a=i*Math.PI/3;val px=x+(kotlin.math.cos(a)*r*.58f).toFloat();val py=y+(kotlin.math.sin(a)*r*.58f).toFloat();c.drawCircle(px,py,r*.48f,paint)};paint.color=0xFFF6D365.toInt();c.drawCircle(x,y,r*.38f,paint)}
-    private fun drawCookie(c:Canvas,x:Float,y:Float,r:Float){paint.color=0x55FFFFFF;c.drawOval(x-r*.48f,y-r*.52f,x-r*.14f,y-r*.18f,paint);paint.color=0xFF704A36.toInt();for(i in 0..5){val a=i*Math.PI/3;c.drawCircle(x+(kotlin.math.cos(a)*r*.45f).toFloat(),y+(kotlin.math.sin(a)*r*.45f).toFloat(),r*.09f,paint)}}
-    private fun drawWrappedCandy(c:Canvas,x:Float,y:Float,r:Float){c.drawRoundRect(x-r*.55f,y-r*.48f,x+r*.55f,y+r*.48f,r*.18f,r*.18f,paint);val p=Path();p.moveTo(x-r*.55f,y-r*.35f);p.lineTo(x-r*1.0f,y-r*.7f);p.lineTo(x-r*.9f,y);p.lineTo(x-r*1.0f,y+r*.7f);p.lineTo(x-r*.55f,y+r*.35f);p.close();c.drawPath(p,paint);val q=Path();q.moveTo(x+r*.55f,y-r*.35f);q.lineTo(x+r*1.0f,y-r*.7f);q.lineTo(x+r*.9f,y);q.lineTo(x+r*1.0f,y+r*.7f);q.lineTo(x+r*.55f,y+r*.35f);q.close();c.drawPath(q,paint)}
-    private fun drawGem(c:Canvas,x:Float,y:Float,r:Float){val p=Path();p.moveTo(x,y-r);p.lineTo(x+r*.82f,y-r*.35f);p.lineTo(x+r*.58f,y+r*.82f);p.lineTo(x-r*.58f,y+r*.82f);p.lineTo(x-r*.82f,y-r*.35f);p.close();c.drawPath(p,paint);paint.color=0x66FFFFFF;c.drawCircle(x-r*.2f,y-r*.25f,r*.16f,paint)}
-    private fun drawOrange(c:Canvas,x:Float,y:Float,r:Float){paint.color=0xFFFFC266.toInt();c.drawArc(x-r*.55f,y-r*.55f,x+r*.55f,y+r*.55f,-70f,70f,false,paint);paint.color=0xFF5C9E52.toInt();c.drawOval(x-r*.08f,y-r*.95f,x+r*.42f,y-r*.55f,paint)}
-    private fun drawDonut(c:Canvas,x:Float,y:Float,r:Float){paint.color=0xFFFFC2A1.toInt();c.drawCircle(x,y,r*.48f,paint);paint.color=0xFF6D4938.toInt();c.drawCircle(x,y,r*.20f,paint)}
+    private fun drawLemon(c:Canvas,x:Float,y:Float,r:Float,color:Int){
+        paint.color=color
+        val p=Path();p.moveTo(x-r*.88f,y-r*.08f);p.cubicTo(x-r*.62f,y-r*.70f,x+r*.42f,y-r*.82f,x+r*.90f,y-r*.05f);p.cubicTo(x+r*.56f,y+r*.66f,x-r*.35f,y+r*.72f,x-r*.88f,y-r*.08f);p.close();c.drawPath(p,paint)
+        paint.color=0x44FFFFFF;c.drawOval(x-r*.45f,y-r*.40f,x-r*.08f,y-r*.05f,paint)
+    }
+    private fun drawBlueberry(c:Canvas,x:Float,y:Float,r:Float,color:Int){
+        paint.color=color
+        val p=Path();p.moveTo(x-r*.78f,y-r*.12f);p.cubicTo(x-r*.72f,y-r*.70f,x+r*.72f,y-r*.70f,x+r*.78f,y-r*.12f);p.cubicTo(x+r*.68f,y+r*.60f,x-r*.68f,y+r*.60f,x-r*.78f,y-r*.12f);p.close();c.drawPath(p,paint)
+        paint.color=0xFF4C3A8A.toInt();val cap=Path();cap.moveTo(x-r*.42f,y-r*.40f);cap.lineTo(x,y-r*.78f);cap.lineTo(x+r*.42f,y-r*.40f);cap.lineTo(x+r*.10f,y-r*.20f);cap.lineTo(x-r*.10f,y-r*.20f);cap.close();c.drawPath(cap,paint)
+        paint.color=0x55FFFFFF;c.drawOval(x-r*.42f,y-r*.35f,x-r*.12f,y-r*.05f,paint)
+    }
+    private fun drawApple(c:Canvas,x:Float,y:Float,r:Float,color:Int){
+        paint.color=color
+        val p=Path();p.moveTo(x,y+r*.92f);p.cubicTo(x-r*1.05f,y+r*.38f,x-r*.80f,y-r*.72f,x,y-r*.30f);p.cubicTo(x+r*.80f,y-r*.72f,x+r*1.05f,y+r*.38f,x,y+r*.92f);p.close();c.drawPath(p,paint)
+        paint.color=0xFF4E9A55.toInt();c.drawOval(x+r*.03f,y-r*.86f,x+r*.53f,y-r*.48f,paint);paint.color=0xFF6D4938.toInt();c.drawRoundRect(x-r*.055f,y-r*.96f,x+r*.055f,y-r*.62f,4f,4f,paint)
+        paint.color=0x44FFFFFF;c.drawOval(x-r*.42f,y-r*.34f,x-r*.12f,y-r*.05f,paint)
+    }
+    private fun drawFlower(c:Canvas,x:Float,y:Float,r:Float,color:Int){
+        paint.color=color
+        for(i in 0..5){val a=i*Math.PI/3;val px=x+(kotlin.math.cos(a)*r*.52f).toFloat();val py=y+(kotlin.math.sin(a)*r*.52f).toFloat();c.drawCircle(px,py,r*.42f,paint)}
+        paint.color=0xFFFFD45A.toInt();c.drawCircle(x,y,r*.32f,paint)
+    }
+    private fun drawCookie(c:Canvas,x:Float,y:Float,r:Float,color:Int){
+        paint.color=color
+        val p=Path();p.moveTo(x-r*.82f,y-r*.15f);p.cubicTo(x-r*.68f,y-r*.72f,x+r*.50f,y-r*.82f,x+r*.82f,y-r*.10f);p.cubicTo(x+r*.62f,y+r*.72f,x-r*.48f,y+r*.76f,x-r*.82f,y-r*.15f);p.close();c.drawPath(p,paint)
+        paint.color=0xFF704A36.toInt();for(i in 0..5){val a=i*Math.PI/3;c.drawCircle(x+(kotlin.math.cos(a)*r*.43f).toFloat(),y+(kotlin.math.sin(a)*r*.43f).toFloat(),r*.085f,paint)}
+        paint.color=0x33FFFFFF;c.drawOval(x-r*.46f,y-r*.45f,x-r*.18f,y-r*.18f,paint)
+    }
+    private fun drawWrappedCandy(c:Canvas,x:Float,y:Float,r:Float,color:Int){
+        paint.color=color;c.drawRoundRect(x-r*.52f,y-r*.42f,x+r*.52f,y+r*.42f,r*.16f,r*.16f,paint)
+        val p=Path();p.moveTo(x-r*.52f,y-r*.30f);p.lineTo(x-r*.98f,y-r*.62f);p.lineTo(x-r*.86f,y);p.lineTo(x-r*.98f,y+r*.62f);p.lineTo(x-r*.52f,y+r*.30f);p.close();c.drawPath(p,paint)
+        val q=Path();q.moveTo(x+r*.52f,y-r*.30f);q.lineTo(x+r*.98f,y-r*.62f);q.lineTo(x+r*.86f,y);q.lineTo(x+r*.98f,y+r*.62f);q.lineTo(x+r*.52f,y+r*.30f);q.close();c.drawPath(q,paint)
+        paint.color=0x44FFFFFF;c.drawRoundRect(x-r*.28f,y-r*.28f,x-r*.02f,y-r*.02f,r*.05f,r*.05f,paint)
+    }
+    private fun drawGem(c:Canvas,x:Float,y:Float,r:Float,color:Int){
+        paint.color=color;val p=Path();p.moveTo(x,y-r);p.lineTo(x+r*.78f,y-r*.38f);p.lineTo(x+r*.55f,y+r*.78f);p.lineTo(x-r*.55f,y+r*.78f);p.lineTo(x-r*.78f,y-r*.38f);p.close();c.drawPath(p,paint)
+        paint.color=0x55FFFFFF;val h=Path();h.moveTo(x-r*.42f,y-r*.34f);h.lineTo(x-r*.08f,y-r*.62f);h.lineTo(x+r*.08f,y-r*.34f);h.lineTo(x-r*.12f,y-r*.05f);h.close();c.drawPath(h,paint)
+    }
+    private fun drawOrange(c:Canvas,x:Float,y:Float,r:Float,color:Int){
+        paint.color=color;val p=Path();p.moveTo(x,y-r*.88f);p.cubicTo(x+r*.70f,y-r*.78f,x+r*.92f,y+r*.20f,x+r*.42f,y+r*.78f);p.cubicTo(x-r*.20f,y+r*.98f,x-r*.88f,y+r*.40f,x-r*.72f,y-r*.20f);p.cubicTo(x-r*.58f,y-r*.70f,x-r*.22f,y-r*.86f,x,y-r*.88f);p.close();c.drawPath(p,paint)
+        paint.color=0xFF4E9A55.toInt();c.drawOval(x-r*.05f,y-r*.98f,x+r*.40f,y-r*.62f,paint)
+        paint.color=0x44FFFFFF;c.drawOval(x-r*.42f,y-r*.48f,x-r*.14f,y-r*.18f,paint)
+    }
+    private fun drawDonut(c:Canvas,x:Float,y:Float,r:Float,color:Int){
+        paint.color=color;c.drawCircle(x,y,r*.78f,paint)
+        paint.color=0xFF8B5E4A.toInt();c.drawCircle(x,y,r*.25f,paint)
+        paint.color=0xFFFFD2A8.toInt();c.drawCircle(x,y,r*.12f,paint)
+        paint.color=0x55FFFFFF;c.drawOval(x-r*.48f,y-r*.48f,x-r*.12f,y-r*.20f,paint)
+    }
     private fun helperBtn(c:Canvas,l:Float,t:Float,r:Float,bb:Float,type:Int,count:Int){
         val x1=width*l;val y1=height*t;val x2=width*r;val y2=height*bb
         box(c,x1,y1,x2,y2,0xFF8B5E4A.toInt())
@@ -203,7 +233,7 @@ class GameView(context: Context) : View(context) {
         }
         return true
     }
-    private fun tap(x:Float,y:Float){when(screen){Screen.MENU->when{y in height*.29f..height*.38f->start(level);y in height*.41f..height*.50f->screen=Screen.LEVELS;y in height*.53f..height*.62f->screen=Screen.SHOP;y in height*.65f..height*.74f->screen=Screen.SETTINGS;y in height*.77f..height*.86f->screen=Screen.HELP};Screen.LEVELS->{
+    private fun tap(x:Float,y:Float){when(screen){Screen.MENU->when{y in height*.29f..height*.38f->start(unlockedLevel);y in height*.41f..height*.50f->screen=Screen.LEVELS;y in height*.53f..height*.62f->screen=Screen.SHOP;y in height*.65f..height*.74f->screen=Screen.SETTINGS;y in height*.77f..height*.86f->screen=Screen.HELP};Screen.LEVELS->{
                 val dy=y-downY
                 if(abs(dy)>18f){
                     levelScroll=(levelScroll-dy).coerceAtLeast(0f)
@@ -212,7 +242,10 @@ class GameView(context: Context) : View(context) {
                 }else{
                     val row=((y-height*.17f+levelScroll)/(height*.095f)).toInt()
                     val col=((x-width*.06f)/(width*.235f)).toInt()
-                    if(col in 0..3 && row>=0) start(row*4+col+1)
+                    if(col in 0..3 && row>=0){
+                        val chosen=row*4+col+1
+                        if(chosen<=unlockedLevel) start(chosen) else msg("COMPLETE LEVEL ${unlockedLevel} FIRST")
+                    }
                 }
             };Screen.SETTINGS->settingsTap(y);Screen.SHOP->{when{y in height*.22f..height*.37f->buyH();y in height*.43f..height*.58f->buyS();y>height*.78f->screen=Screen.MENU}};Screen.HELP->if(y>height*.78f)screen=Screen.MENU;Screen.GAME->gameTap(x,y)};if(sound)tone.startTone(ToneGenerator.TONE_PROP_BEEP,35);invalidate()}
     private fun drawTypeIcon(c:Canvas,x:Float,y:Float,r:Float,type:Int){
@@ -245,7 +278,10 @@ class GameView(context: Context) : View(context) {
         if(tr in 0 until N&&tc in 0 until N) move(sr,sc,tr,tc)
         sr=-1;sc=-1
     }
-    private fun start(l:Int){level=l.coerceAtLeast(1);score=0;moves=25+level/4;target=400+level*225;fill();screen=Screen.GAME}
+    private fun start(l:Int){
+        if(l>unlockedLevel){msg("COMPLETE LEVEL ${unlockedLevel} FIRST");return}
+        level=l.coerceAtLeast(1);score=0;moves=25+level/4;target=400+level*225;fill();screen=Screen.GAME
+    }
     private fun fill(){for(r in 0 until N)for(c in 0 until N){do{board[r][c]=Random.nextInt(TYPES)}while(matchAt(r,c))}}
     private fun matchAt(r:Int,c:Int)=c>=2&&board[r][c]==board[r][c-1]&&board[r][c]==board[r][c-2]||r>=2&&board[r][c]==board[r-1][c]&&board[r][c]==board[r-2][c]
     private fun move(r1:Int,c1:Int,r2:Int,c2:Int){
@@ -261,7 +297,12 @@ class GameView(context: Context) : View(context) {
     private fun matches():Set<Pair<Int,Int>>{val o=mutableSetOf<Pair<Int,Int>>();for(r in 0 until N){var s=0;while(s<N){var e=s+1;while(e<N&&board[r][e]>=0&&board[r][e]==board[r][s])e++;if(board[r][s]>=0&&e-s>=3)for(c in s until e)o.add(r to c);s=e}};for(c in 0 until N){var s=0;while(s<N){var e=s+1;while(e<N&&board[e][c]>=0&&board[e][c]==board[s][c])e++;if(board[s][c]>=0&&e-s>=3)for(r in s until e)o.add(r to c);s=e}};return o}
     private fun resolve(){var combo=0;while(true){val m=matches();if(m.isEmpty())break;combo++;score+=m.size*25*combo;m.forEach{board[it.first][it.second]=-1};for(c in 0 until N){var w=N-1;for(r in N-1 downTo 0)if(board[r][c]>=0){board[w][c]=board[r][c];if(w!=r)board[r][c]=-1;w--};while(w>=0){board[w][c]=Random.nextInt(TYPES);w--}}}}
     private fun reward()=20+level*5
-    private fun complete(){coins+=reward();prefs.edit().putInt("coins",coins).apply();screen=Screen.LEVELS}
+    private fun complete(){
+        coins+=reward()
+        if(level>=unlockedLevel) unlockedLevel=level+1
+        prefs.edit().putInt("coins",coins).putInt("unlocked_level",unlockedLevel).apply()
+        screen=Screen.LEVELS
+    }
     private fun useH(){if(hammer<=0){msg("BUY A HAMMER");return};val top=height*.12f;val cell=min(width*.112f,height*.68f/N);val left=(width-cell*N)/2;val col=((downX-left)/cell).toInt().coerceIn(0,N-1);val row=((downY-top)/cell).toInt().coerceIn(0,N-1);board[row][col]=Random.nextInt(TYPES);hammer--;save();resolve()}
     private fun useS(){if(shuffle<=0){msg("BUY A SHUFFLE");return};fill();shuffle--;save()}
     private fun buyH(){if(coins<30)msg("NEED 30 COINS")else{coins-=30;hammer++;save()}}
