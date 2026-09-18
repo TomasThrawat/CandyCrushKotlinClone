@@ -116,20 +116,7 @@ class GameView(context: Context) : View(context) {
     }
     private fun box(c:Canvas,l:Float,t:Float,r:Float,bb:Float,color:Int){paint.style=Paint.Style.FILL;paint.color=color;c.drawRoundRect(l,t,r,bb,14f,14f,paint)}
     private fun text(c:Canvas,s:String,x:Float,y:Float,size:Float,color:Int,bold:Boolean){paint.color=color;paint.textSize=size;paint.textAlign=Paint.Align.CENTER;paint.typeface=Typeface.create("sans",if(bold)Typeface.BOLD else Typeface.NORMAL);c.drawText(s,x,y,paint)}
-    private fun candy(c:Canvas,x:Float,y:Float,r:Float,v:Int){
-        val body=when(v%10){
-            0->0xFFE85D68.toInt()   // strawberry
-            1->0xFFF2C14E.toInt()   // lemon
-            2->0xFF5B8DEF.toInt()   // blueberry
-            3->0xFF70B77A.toInt()   // apple
-            4->0xFFD889C8.toInt()   // flower
-            5->0xFFB97850.toInt()   // cookie
-            6->0xFF62C5C9.toInt()   // wrapped candy
-            7->0xFF9A72D6.toInt()   // gem
-            8->0xFFFF8C42.toInt()   // orange
-            else->0xFFE6A15A.toInt() // donut
-        }
-        paint.color=body
+private fun candy(c:Canvas,x:Float,y:Float,r:Float,v:Int){
         when(v%10){
             0->drawStrawberry(c,x,y,r)
             1->drawLemon(c,x,y,r)
@@ -142,33 +129,137 @@ class GameView(context: Context) : View(context) {
             8->drawOrange(c,x,y,r)
             else->drawDonut(c,x,y,r)
         }
-        // Small friendly face makes every piece feel like a character.
-        drawFace(c,x,y+r*.05f,r*.72f)
+    }
+    private fun finishShape(c:Canvas,x:Float,y:Float,r:Float,color:Int){
+        paint.color=color
+        paint.style=Paint.Style.STROKE
+        paint.strokeWidth=r*.055f
+        paint.strokeJoin=Paint.Join.ROUND
+        paint.strokeCap=Paint.Cap.ROUND
+        paint.color=0x552D2330.toInt()
+        paint.style=Paint.Style.STROKE
+        paint.strokeWidth=r*.055f
+    }
+    private fun shine(c:Canvas,x:Float,y:Float,r:Float){
+        paint.style=Paint.Style.FILL
+        paint.color=0x66FFFFFF
+        c.drawOval(x-r*.48f,y-r*.56f,x-r*.14f,y-r*.22f,paint)
     }
     private fun drawStrawberry(c:Canvas,x:Float,y:Float,r:Float){
-        val p=Path();p.moveTo(x,y+r);p.cubicTo(x-r*1.05f,y+r*.25f,x-r*.75f,y-r*.65f,x,y-r*.35f);p.cubicTo(x+r*.75f,y-r*.65f,x+r*1.05f,y+r*.25f,x,y+r);p.close();c.drawPath(p,paint)
-        paint.color=0xFF5C9E52.toInt();val leaf=Path();leaf.moveTo(x,y-r*.42f);leaf.lineTo(x-r*.48f,y-r*.78f);leaf.lineTo(x-r*.08f,y-r*.78f);leaf.lineTo(x,y-r*1.02f);leaf.lineTo(x+r*.08f,y-r*.78f);leaf.lineTo(x+r*.48f,y-r*.78f);leaf.close();c.drawPath(leaf,paint)
-        paint.color=0xFFFFF0C7.toInt();for(i in -1..1)c.drawOval(x+i*r*.28f,y-r*.05f,x+i*r*.28f+r*.06f,y+r*.13f,paint)
-    }
-    private fun drawLemon(c:Canvas,x:Float,y:Float,r:Float){c.drawOval(x-r*.9f,y-r*.72f,x+r*.9f,y+r*.72f,paint);paint.color=0x66FFFFFF;c.drawOval(x-r*.45f,y-r*.45f,x-r*.08f,y-r*.12f,paint)}
-    private fun drawBlueberry(c:Canvas,x:Float,y:Float,r:Float){c.drawCircle(x,y,r*.88f,paint);paint.color=0xFF6B4E9B.toInt();val p=Path();p.moveTo(x-r*.38f,y-r*.68f);p.lineTo(x,y-r*.9f);p.lineTo(x+r*.38f,y-r*.68f);p.lineTo(x+r*.12f,y-r*.42f);p.lineTo(x-r*.12f,y-r*.42f);p.close();c.drawPath(p,paint)}
-    private fun drawApple(c:Canvas,x:Float,y:Float,r:Float){val p=Path();p.moveTo(x,y+r*.9f);p.cubicTo(x-r*1.05f,y+r*.35f,x-r*.78f,y-r*.72f,x,y-r*.35f);p.cubicTo(x+r*.78f,y-r*.72f,x+r*1.05f,y+r*.35f,x,y+r*.9f);p.close();c.drawPath(p,paint);paint.color=0xFF5C9E52.toInt();c.drawOval(x+r*.05f,y-r*.85f,x+r*.55f,y-r*.45f,paint);paint.color=0xFF6D4938.toInt();c.drawRoundRect(x-r*.06f,y-r*.95f,x+r*.06f,y-r*.63f,4f,4f,paint)}
-    private fun drawFlower(c:Canvas,x:Float,y:Float,r:Float){for(i in 0..5){val a=i*Math.PI/3;val px=x+(kotlin.math.cos(a)*r*.58f).toFloat();val py=y+(kotlin.math.sin(a)*r*.58f).toFloat();c.drawCircle(px,py,r*.48f,paint)};paint.color=0xFFF6D365.toInt();c.drawCircle(x,y,r*.38f,paint)}
-    private fun drawCookie(c:Canvas,x:Float,y:Float,r:Float){c.drawCircle(x,y,r*.86f,paint);paint.color=0xFF704A36.toInt();for(i in 0..5){val a=i*Math.PI/3;c.drawCircle(x+(kotlin.math.cos(a)*r*.45f).toFloat(),y+(kotlin.math.sin(a)*r*.45f).toFloat(),r*.09f,paint)}}
-    private fun drawWrappedCandy(c:Canvas,x:Float,y:Float,r:Float){c.drawRoundRect(x-r*.55f,y-r*.48f,x+r*.55f,y+r*.48f,r*.18f,r*.18f,paint);val p=Path();p.moveTo(x-r*.55f,y-r*.35f);p.lineTo(x-r*1.0f,y-r*.7f);p.lineTo(x-r*.9f,y);p.lineTo(x-r*1.0f,y+r*.7f);p.lineTo(x-r*.55f,y+r*.35f);p.close();c.drawPath(p,paint);val q=Path();q.moveTo(x+r*.55f,y-r*.35f);q.lineTo(x+r*1.0f,y-r*.7f);q.lineTo(x+r*.9f,y);q.lineTo(x+r*1.0f,y+r*.7f);q.lineTo(x+r*.55f,y+r*.35f);q.close();c.drawPath(q,paint)}
-    private fun drawGem(c:Canvas,x:Float,y:Float,r:Float){val p=Path();p.moveTo(x,y-r);p.lineTo(x+r*.82f,y-r*.35f);p.lineTo(x+r*.58f,y+r*.82f);p.lineTo(x-r*.58f,y+r*.82f);p.lineTo(x-r*.82f,y-r*.35f);p.close();c.drawPath(p,paint);paint.color=0x66FFFFFF;c.drawCircle(x-r*.2f,y-r*.25f,r*.16f,paint)}
-    private fun drawOrange(c:Canvas,x:Float,y:Float,r:Float){c.drawCircle(x,y,r*.86f,paint);paint.color=0xFFFFC266.toInt();c.drawArc(x-r*.55f,y-r*.55f,x+r*.55f,y+r*.55f,-70f,70f,false,paint);paint.color=0xFF5C9E52.toInt();c.drawOval(x-r*.08f,y-r*.95f,x+r*.42f,y-r*.55f,paint)}
-    private fun drawDonut(c:Canvas,x:Float,y:Float,r:Float){c.drawCircle(x,y,r*.86f,paint);paint.color=0xFFFFC2A1.toInt();c.drawCircle(x,y,r*.48f,paint);paint.color=0xFF6D4938.toInt();c.drawCircle(x,y,r*.20f,paint)}
-    private fun drawFace(c:Canvas,x:Float,y:Float,r:Float){
-        paint.color=0xFF3D2B35.toInt()
-        c.drawCircle(x-r*.28f,y-r*.08f,r*.08f,paint)
-        c.drawCircle(x+r*.28f,y-r*.08f,r*.08f,paint)
-        paint.style=Paint.Style.STROKE
-        paint.strokeWidth=r*.06f
-        c.drawArc(x-r*.25f,y-r*.02f,x+r*.25f,y+r*.30f,15f,150f,false,paint)
         paint.style=Paint.Style.FILL
+        paint.color=0xFFE85D68.toInt()
+        val p=Path()
+        p.moveTo(x,y+r*.98f)
+        p.cubicTo(x-r*1.05f,y+r*.20f,x-r*.72f,y-r*.62f,x,y-r*.30f)
+        p.cubicTo(x+r*.72f,y-r*.62f,x+r*1.05f,y+r*.20f,x,y+r*.98f)
+        p.close()
+        c.drawPath(p,paint)
+        paint.color=0xFF5C9E52.toInt()
+        val leaf=Path()
+        leaf.moveTo(x,y-r*.38f);leaf.lineTo(x-r*.52f,y-r*.76f);leaf.lineTo(x-r*.10f,y-r*.74f)
+        leaf.lineTo(x,y-r*1.04f);leaf.lineTo(x+r*.10f,y-r*.74f);leaf.lineTo(x+r*.52f,y-r*.76f);leaf.close()
+        c.drawPath(leaf,paint)
+        paint.color=0xFFFFF0C7.toInt()
+        for(i in -1..1)c.drawOval(x+i*r*.28f,y-r*.02f,x+i*r*.28f+r*.055f,y+r*.15f,paint)
+        shine(c,x-r*.02f,y+r*.02f,r)
     }
-    private fun helperBtn(c:Canvas,l:Float,t:Float,r:Float,bb:Float,type:Int,count:Int){
+    private fun drawLemon(c:Canvas,x:Float,y:Float,r:Float){
+        paint.style=Paint.Style.FILL
+        paint.color=0xFFF2C14E.toInt()
+        c.drawOval(x-r*.92f,y-r*.70f,x+r*.92f,y+r*.70f,paint)
+        paint.color=0xFFFFE58A.toInt()
+        c.drawOval(x-r*.70f,y-r*.50f,x+r*.15f,y+r*.38f,paint)
+        paint.color=0xFF7AAE62.toInt()
+        c.drawOval(x+r*.35f,y-r*.70f,x+r*.72f,y-r*.45f,paint)
+    }
+    private fun drawBlueberry(c:Canvas,x:Float,y:Float,r:Float){
+        paint.style=Paint.Style.FILL
+        paint.color=0xFF5B8DEF.toInt()
+        c.drawCircle(x,y,r*.88f,paint)
+        paint.color=0xFF6B4E9B.toInt()
+        val p=Path()
+        p.moveTo(x-r*.42f,y-r*.66f);p.lineTo(x,y-r*.92f);p.lineTo(x+r*.42f,y-r*.66f)
+        p.lineTo(x+r*.12f,y-r*.40f);p.lineTo(x-r*.12f,y-r*.40f);p.close()
+        c.drawPath(p,paint)
+        shine(c,x+r*.05f,y+r*.02f,r)
+    }
+    private fun drawApple(c:Canvas,x:Float,y:Float,r:Float){
+        paint.style=Paint.Style.FILL
+        paint.color=0xFF70B77A.toInt()
+        val p=Path()
+        p.moveTo(x,y+r*.90f)
+        p.cubicTo(x-r*1.04f,y+r*.35f,x-r*.78f,y-r*.68f,x,y-r*.34f)
+        p.cubicTo(x+r*.78f,y-r*.68f,x+r*1.04f,y+r*.35f,x,y+r*.90f)
+        p.close();c.drawPath(p,paint)
+        paint.color=0xFF5C9E52.toInt();c.drawOval(x+r*.05f,y-r*.84f,x+r*.58f,y-r*.43f,paint)
+        paint.color=0xFF6D4938.toInt();c.drawRoundRect(x-r*.06f,y-r*.96f,x+r*.06f,y-r*.62f,r*.04f,r*.04f,paint)
+        shine(c,x,y+r*.03f,r)
+    }
+    private fun drawFlower(c:Canvas,x:Float,y:Float,r:Float){
+        paint.style=Paint.Style.FILL
+        paint.color=0xFFD889C8.toInt()
+        for(i in 0..5){
+            val a=i*Math.PI/3
+            val px=x+(kotlin.math.cos(a)*r*.56f).toFloat()
+            val py=y+(kotlin.math.sin(a)*r*.56f).toFloat()
+            c.drawCircle(px,py,r*.47f,paint)
+        }
+        paint.color=0xFFF6D365.toInt();c.drawCircle(x,y,r*.38f,paint)
+        paint.color=0xFFFFB6DE
+        c.drawCircle(x-r*.18f,y-r*.12f,r*.08f,paint)
+    }
+    private fun drawCookie(c:Canvas,x:Float,y:Float,r:Float){
+        paint.style=Paint.Style.FILL
+        paint.color=0xFFB97850.toInt();c.drawCircle(x,y,r*.86f,paint)
+        paint.color=0xFF704A36.toInt()
+        for(i in 0..5){
+            val a=i*Math.PI/3
+            c.drawCircle(x+(kotlin.math.cos(a)*r*.45f).toFloat(),y+(kotlin.math.sin(a)*r*.45f).toFloat(),r*.09f,paint)
+        }
+        c.drawCircle(x+r*.10f,y-r*.18f,r*.07f,paint)
+        shine(c,x+r*.05f,y+r*.05f,r)
+    }
+    private fun drawWrappedCandy(c:Canvas,x:Float,y:Float,r:Float){
+        paint.style=Paint.Style.FILL
+        paint.color=0xFF62C5C9.toInt()
+        c.drawRoundRect(x-r*.56f,y-r*.48f,x+r*.56f,y+r*.48f,r*.18f,r*.18f,paint)
+        val p=Path()
+        p.moveTo(x-r*.54f,y-r*.34f);p.lineTo(x-r*1.02f,y-r*.70f);p.lineTo(x-r*.90f,y);p.lineTo(x-r*1.02f,y+r*.70f);p.lineTo(x-r*.54f,y+r*.34f);p.close();c.drawPath(p,paint)
+        val q=Path()
+        q.moveTo(x+r*.54f,y-r*.34f);q.lineTo(x+r*1.02f,y-r*.70f);q.lineTo(x+r*.90f,y);q.lineTo(x+r*1.02f,y+r*.70f);q.lineTo(x+r*.54f,y+r*.34f);q.close();c.drawPath(q,paint)
+        paint.color=0xFF3D9FA5.toInt()
+        c.drawRoundRect(x-r*.12f,y-r*.48f,x+r*.12f,y+r*.48f,r*.06f,r*.06f,paint)
+        shine(c,x+r*.02f,y+r*.02f,r)
+    }
+    private fun drawGem(c:Canvas,x:Float,y:Float,r:Float){
+        paint.style=Paint.Style.FILL
+        paint.color=0xFF9A72D6.toInt()
+        val p=Path()
+        p.moveTo(x,y-r);p.lineTo(x+r*.82f,y-r*.34f);p.lineTo(x+r*.58f,y+r*.82f);p.lineTo(x-r*.58f,y+r*.82f);p.lineTo(x-r*.82f,y-r*.34f);p.close()
+        c.drawPath(p,paint)
+        paint.color=0xFFBDA3F0.toInt()
+        val h=Path();h.moveTo(x-r*.52f,y-r*.28f);h.lineTo(x,y-r*.72f);h.lineTo(x+r*.10f,y-r*.28f);h.close();c.drawPath(h,paint)
+    }
+    private fun drawOrange(c:Canvas,x:Float,y:Float,r:Float){
+        paint.style=Paint.Style.FILL
+        paint.color=0xFFFF8C42.toInt();c.drawCircle(x,y,r*.86f,paint)
+        paint.color=0xFFFFC266.toInt();c.drawArc(x-r*.55f,y-r*.55f,x+r*.55f,y+r*.55f,-70f,70f,false,paint)
+        paint.color=0xFF5C9E52.toInt();c.drawOval(x-r*.08f,y-r*.95f,x+r*.42f,y-r*.55f,paint)
+        shine(c,x,y,r)
+    }
+    private fun drawDonut(c:Canvas,x:Float,y:Float,r:Float){
+        paint.style=Paint.Style.FILL
+        paint.color=0xFFE6A15A.toInt();c.drawCircle(x,y,r*.86f,paint)
+        paint.color=0xFFFFC2A1.toInt();c.drawCircle(x,y,r*.49f,paint)
+        paint.color=0xFF6D4938.toInt();c.drawCircle(x,y,r*.20f,paint)
+        paint.color=0xFFFFE0B8.toInt()
+        for(i in 0..5){
+            val a=i*Math.PI/3
+            c.drawCircle(x+(kotlin.math.cos(a)*r*.58f).toFloat(),y+(kotlin.math.sin(a)*r*.58f).toFloat(),r*.055f,paint)
+        }
+        shine(c,x,y,r)
+    }
+    private fun helperBtn(c:Canvas,l:Float,t:Float,r:Float,bb:Float,type:Int,count:Int){    private fun helperBtn(c:Canvas,l:Float,t:Float,r:Float,bb:Float,type:Int,count:Int){
         val x1=width*l;val y1=height*t;val x2=width*r;val y2=height*bb
         box(c,x1,y1,x2,y2,0xFF8B5E4A.toInt())
         val cx=(x1+x2)/2f;val cy=(y1+y2)/2f
@@ -227,23 +318,7 @@ class GameView(context: Context) : View(context) {
                 }
             };Screen.SETTINGS->settingsTap(y);Screen.SHOP->{when{y in height*.22f..height*.37f->buyH();y in height*.43f..height*.58f->buyS();y>height*.78f->screen=Screen.MENU}};Screen.HELP->if(y>height*.78f)screen=Screen.MENU;Screen.GAME->gameTap(x,y)};if(sound)tone.startTone(ToneGenerator.TONE_PROP_BEEP,35);invalidate()}
     private fun drawTypeIcon(c:Canvas,x:Float,y:Float,r:Float,type:Int){
-        paint.style=Paint.Style.FILL
-        paint.color=when(type){
-            0->0xFFFF6B8A.toInt();1->0xFFFFD447.toInt();2->0xFF5C8DFF.toInt();3->0xFFE85D5D.toInt();4->0xFFFF9FCF.toInt()
-            5->0xFFD79A5B.toInt();6->0xFFFF8A4D.toInt();7->0xFF8D6BFF.toInt();8->0xFFFFA23E.toInt();else->0xFFFF7AB8.toInt()
-        }
-        when(type){
-            0->{c.drawCircle(x,y,r*.65f,paint);c.drawCircle(x-r*.55f,y-r*.25f,r*.38f,paint);c.drawCircle(x+r*.55f,y-r*.25f,r*.38f,paint)}
-            1->{val p=Path();p.moveTo(x-r*.8f,y-r*.2f);p.lineTo(x+r*.65f,y-r*.65f);p.lineTo(x+r*.8f,y+r*.2f);p.lineTo(x-r*.65f,y+r*.65f);p.close();c.drawPath(p,paint)}
-            2->c.drawCircle(x,y,r*.7f,paint)
-            3->{val p=Path();p.moveTo(x,y-r*.75f);p.cubicTo(x-r*.9f,y-r*.35f,x-r*.7f,y+r*.65f,x,y+r*.8f);p.cubicTo(x+r*.7f,y+r*.65f,x+r*.9f,y-r*.35f,x,y-r*.75f);p.close();c.drawPath(p,paint)}
-            4->{for(i in 0..5){val a=i*Math.PI/3;c.drawCircle(x+(kotlin.math.cos(a)*r*.48f).toFloat(),y+(kotlin.math.sin(a)*r*.48f).toFloat(),r*.38f,paint)}}
-            5->c.drawCircle(x,y,r*.7f,paint)
-            6->c.drawRoundRect(x-r*.55f,y-r*.45f,x+r*.55f,y+r*.45f,r*.18f,r*.18f,paint)
-            7->{val p=Path();p.moveTo(x,y-r*.8f);p.lineTo(x+r*.65f,y-r*.25f);p.lineTo(x+r*.45f,y+r*.7f);p.lineTo(x-r*.45f,y+r*.7f);p.lineTo(x-r*.65f,y-r*.25f);p.close();c.drawPath(p,paint)}
-            8->c.drawCircle(x,y,r*.7f,paint)
-            9->{c.drawCircle(x,y,r*.7f,paint);paint.color=0xFFFFD0A8.toInt();c.drawCircle(x,y,r*.32f,paint)}
-        }
+        candy(c,x,y,r*.72f,type)
     }
     private fun settingsTap(y:Float){when{y in height*.20f..height*.28f->fps=when(fps){"60"->"90";"90"->"120";"120"->"NO CAP";else->"60"};y in height*.31f..height*.39f->graphics=when(graphics){"LOW"->"MEDIUM";"MEDIUM"->"HIGH";else->"LOW"};y in height*.42f..height*.50f->shadows=!shadows;y in height*.53f..height*.61f->look=((look.toIntOrNull() ?: 0)%10+1).toString();y in height*.64f..height*.72f->sound=!sound;y>height*.83f->screen=Screen.MENU};save()}
     private fun gameTap(x:Float,y:Float){
