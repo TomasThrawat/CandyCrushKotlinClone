@@ -1,2 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources><style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar"><item name="android:fontFamily">sans</item><item name="android:windowFullscreen">true</item><item name="android:colorAccent">#7B3F98</item><item name="android:navigationBarColor">#24152F</item></style></resources>
+<resources><style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar"><item name="android:fontFamily">sans</item><item name="android:windowFullscreen">true</item><item name="android:colorAccent">#FF8FBE</item><item name="android:navigationBarColor">#7B3F98</item></style></resources>

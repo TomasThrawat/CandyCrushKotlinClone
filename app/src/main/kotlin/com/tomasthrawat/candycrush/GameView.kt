@@ -34,7 +34,7 @@ class GameView(context: Context) : View(context) {
         c.drawColor(0xFFFFF8F0.toInt())
         when(screen){Screen.MENU->menu(c);Screen.LEVELS->levels(c);Screen.GAME->game(c);Screen.SHOP->shop(c);Screen.HELP->help(c);Screen.SETTINGS->settings(c)}
         val now=System.currentTimeMillis()
-        if(msgUntil>now){text(c,msg,width/2f,height*.96f,width*.038f,0xFF5B4636.toInt(),true);requestFrame()}
+        if(msgUntil>now){text(c,msg,width/2f,height*.96f,width*.038f,0xFF6B5265.toInt(),true);requestFrame()}
         if(screen==Screen.GAME&&anim>0L){
             val elapsed=now-anim
             if(elapsed<220L) requestFrame()
@@ -46,11 +46,11 @@ class GameView(context: Context) : View(context) {
         }
     }
     private fun requestFrame(){when(fps){"60"->postDelayed({invalidate()},16);"90"->postDelayed({invalidate()},11);"120"->postDelayed({invalidate()},8);else->postInvalidateOnAnimation()}}
-    private fun menu(c:Canvas){text(c,"SWEET MATCH",width/2f,height*.15f,width*.08f,0xFF8B5E4A.toInt(),true);text(c,"Level: $level    Coins: $coins",width/2f,height*.22f,width*.038f,0xFF7A5600.toInt(),true);btn(c,.15f,.29f,.85f,.38f,"PLAY");btn(c,.15f,.41f,.85f,.50f,"LEVELS");btn(c,.15f,.53f,.85f,.62f,"SHOP");btn(c,.15f,.65f,.85f,.74f,"SETTINGS");btn(c,.15f,.77f,.85f,.86f,"HELP")}
+    private fun menu(c:Canvas){text(c,"CANDY FAMILY",width/2f,height*.15f,width*.08f,0xFF8B5E4A.toInt(),true);text(c,"Level: $level    Coins: $coins",width/2f,height*.22f,width*.038f,0xFF7A5600.toInt(),true);btn(c,.15f,.29f,.85f,.38f,"PLAY");btn(c,.15f,.41f,.85f,.50f,"LEVELS");btn(c,.15f,.53f,.85f,.62f,"SHOP");btn(c,.15f,.65f,.85f,.74f,"SETTINGS");btn(c,.15f,.77f,.85f,.86f,"HOW TO PLAY")}
     private var levelScroll=0f
     private fun levels(c:Canvas){
         text(c,"LEVELS",width/2f,height*.07f,width*.065f,0xFF8B5E4A.toInt(),true)
-        text(c,"Scroll for unlimited levels",width/2f,height*.13f,width*.032f,0xFF5B4636.toInt(),false)
+        text(c,"Scroll for unlimited levels",width/2f,height*.13f,width*.032f,0xFF6B5265.toInt(),false)
         val top=height*.17f
         val rowH=height*.095f
         val firstRow=(levelScroll/rowH).toInt().coerceAtLeast(0)
@@ -61,19 +61,46 @@ class GameView(context: Context) : View(context) {
             for(col in 0..3){
                 val levelNo=row*4+col+1
                 val l=width*.06f+col*width*.235f
-                box(c,l,y,l+width*.19f,y+height*.065f,0xFFD9A441.toInt())
+                box(c,l,y,l+width*.19f,y+height*.065f,0xFFFFD6E8.toInt())
                 text(c,levelNo.toString(),l+width*.095f,y+height*.044f,width*.034f,Color.WHITE,true)
             }
         }
         btn(c,.2f,.91f,.8f,.98f,"BACK")
     }
-    private fun settings(c:Canvas){text(c,"SETTINGS",width/2f,height*.09f,width*.065f,0xFF8B5E4A.toInt(),true);text(c,"VIDEO / GRAPHICS",width/2f,height*.16f,width*.038f,0xFF5B4636.toInt(),true);btn(c,.12f,.20f,.88f,.28f,"FPS: $fps");btn(c,.12f,.31f,.88f,.39f,"GRAPHICS: $graphics");btn(c,.12f,.42f,.88f,.50f,"SHADOWS: "+if(shadows)"ON" else "OFF");btn(c,.12f,.53f,.88f,.61f,"CHARACTER STYLE: $look");btn(c,.12f,.64f,.88f,.72f,"SOUND: "+if(sound)"ON" else "OFF");btn(c,.20f,.83f,.80f,.91f,"BACK")}
-    private fun game(c:Canvas){text(c,"LEVEL $level",width*.16f,height*.06f,width*.043f,0xFF8B5E4A.toInt(),true);text(c,"$score/$target",width*.50f,height*.06f,width*.038f,0xFF5B4636.toInt(),true);text(c,"MOVES $moves",width*.83f,height*.06f,width*.038f,0xFF5B4636.toInt(),true);val top=height*.12f;val cell=min(width*.112f,height*.68f/N);val left=(width-cell*N)/2f;val rawProg=if(anim>0L)((System.currentTimeMillis()-anim)/220f).coerceIn(0f,1f) else 1f
+    private fun settings(c:Canvas){text(c,"SETTINGS",width/2f,height*.09f,width*.065f,0xFF8B5E4A.toInt(),true);text(c,"VIDEO / GRAPHICS",width/2f,height*.16f,width*.038f,0xFF6B5265.toInt(),true);btn(c,.12f,.20f,.88f,.28f,"FPS: $fps");btn(c,.12f,.31f,.88f,.39f,"GRAPHICS: $graphics");btn(c,.12f,.42f,.88f,.50f,"SHADOWS: "+if(shadows)"ON" else "OFF");btn(c,.12f,.53f,.88f,.61f,"CHARACTER STYLE: $look");btn(c,.12f,.64f,.88f,.72f,"SOUND: "+if(sound)"ON" else "OFF");btn(c,.20f,.83f,.80f,.91f,"BACK")}
+    private fun game(c:Canvas){text(c,"LEVEL $level",width*.16f,height*.06f,width*.043f,0xFF8B5E4A.toInt(),true);text(c,"$score/$target",width*.50f,height*.06f,width*.038f,0xFF6B5265.toInt(),true);text(c,"MOVES $moves",width*.83f,height*.06f,width*.038f,0xFF6B5265.toInt(),true);val top=height*.12f;val cell=min(width*.112f,height*.68f/N);val left=(width-cell*N)/2f;val rawProg=if(anim>0L)((System.currentTimeMillis()-anim)/220f).coerceIn(0f,1f) else 1f
         val prog=1f-(1f-rawProg)*(1f-rawProg)
         for(r in 0 until N)for(col in 0 until N){val x=left+col*cell;val y=top+r*cell;box(c,x+1,y+1,x+cell-1,y+cell-1,0x22FFFFFF.toInt());if(board[r][col]>=0){var dx=0f;var dy=0f;if(prog<1f&&r==ar&&col==ac){dx=(bc-ac)*cell*prog;dy=(br-ar)*cell*prog};if(prog<1f&&r==br&&col==bc){dx=(ac-bc)*cell*prog;dy=(ar-br)*cell*prog};if(shadows&&graphics!="LOW"){paint.color=0x33000000;c.drawCircle(x+cell/2+dx+3,y+cell/2+dy+4,cell*.35f,paint)};candy(c,x+cell/2+dx,y+cell/2+dy,cell*.35f,board[r][col])}};helperBtn(c,.04f,.83f,.30f,.92f,0,hammer);helperBtn(c,.35f,.83f,.65f,.92f,1,shuffle);btn(c,.70f,.83f,.96f,.92f,"LOBBY");if(score>=target||moves<=0){paint.color=0xEE24152F.toInt();c.drawRect(0f,height*.30f,width.toFloat(),height*.68f,paint);text(c,if(score>=target)"LEVEL COMPLETE" else "OUT OF MOVES",width/2f,height*.43f,width*.06f,Color.WHITE,true);text(c,if(score>=target)"+"+reward()+" COINS" else "TRY AGAIN",width/2f,height*.51f,width*.045f,Color.WHITE,true);btn(c,.2f,.57f,.8f,.65f,if(score>=target)"CONTINUE" else "RETRY")}}
     private fun shop(c:Canvas){text(c,"SHOP",width/2f,height*.09f,width*.065f,0xFF8B5E4A.toInt(),true);text(c,"Coins: $coins",width/2f,height*.15f,width*.038f,0xFF7A5600.toInt(),true);item(c,.18f,.22f,"HAMMER","Break a candy",hammer,30);item(c,.18f,.43f,"SHUFFLE","New board",shuffle,45);btn(c,.2f,.78f,.8f,.86f,"BACK")}
-    private fun help(c:Canvas){text(c,"HOW TO PLAY",width/2f,height*.1f,width*.06f,0xFF8B5E4A.toInt(),true);listOf("Swipe adjacent candies to move them.","Swaps work even without a match.","Make 3+ matches for points.","Cascades give bonus points.","Reach the target before moves run out.","Levels are generated continuously.","Use helpers from the game screen.").forEachIndexed{i,s->text(c,s,width/2f,height*(.21f+i*.08f),width*.03f,0xFF5B4636.toInt(),false)};btn(c,.2f,.80f,.8f,.88f,"BACK")}
-    private fun item(c:Canvas,x:Float,y:Float,n:String,d:String,count:Int,price:Int){box(c,width*x,height*y,width*(1-x),height*(y+.15f),0xFFFFFBF7.toInt());text(c,n,width*.31f,height*(y+.05f),width*.036f,0xFF5C3B63.toInt(),true);text(c,d,width*.50f,height*(y+.10f),width*.029f,0xFF6D6268.toInt(),false);text(c,"OWNED $count",width*.77f,height*(y+.05f),width*.026f,0xFF5B4636.toInt(),true);btn(c,.70f,y+.10f,.94f,y+.145f,"BUY $price")}
+    private fun help(c:Canvas){text(c,"HOW TO PLAY",width/2f,height*.1f,width*.06f,0xFF8B5E4A.toInt(),true);listOf("Swipe adjacent candies to move them.","Swaps work even without a match.","Make 3+ matches for points.","Cascades give bonus points.","Reach the target before moves run out.","Levels are generated continuously.","Use helpers from the game screen.").forEachIndexed{i,s->text(c,s,width/2f,height*(.21f+i*.08f),width*.03f,0xFF6B5265.toInt(),false)};btn(c,.2f,.80f,.8f,.88f,"BACK")}
+    private fun drawShopIcon(c:Canvas,x:Float,y:Float,n:String){
+        when(n){
+            "HAMMER" -> drawHammer(c,x,y)
+            "SHUFFLE" -> drawShuffle(c,x,y)
+            else -> drawCandyIcon(c,x,y)
+        }
+    }
+
+    private fun drawCandyIcon(c:Canvas,x:Float,y:Float){
+        paint.color=0xFFFF8FBE.toInt()
+        c.drawCircle(x,y,width*.045f,paint)
+        paint.color=0xFFFFFFFF.toInt()
+        c.drawCircle(x-width*.014f,y-height*.012f,width*.010f,paint)
+        c.drawCircle(x+width*.014f,y-height*.012f,width*.010f,paint)
+        paint.color=0xFF7B3F98.toInt()
+        paint.style=Paint.Style.STROKE
+        paint.strokeWidth=width*.008f
+        c.drawArc(x-width*.018f,y-height*.002f,x+width*.018f,y+height*.028f,10f,160f,false,paint)
+        paint.style=Paint.Style.FILL
+    }
+
+    private fun item(c:Canvas,x:Float,y:Float,n:String,d:String,count:Int,price:Int){
+        box(c,width*x,height*y,width*(1-x),height*(y+.15f),0xFFFFF7FB.toInt())
+        drawShopIcon(c,width*.50f,height*(y+.075f),n)
+        text(c,d,width*.50f,height*(y+.10f),width*.029f,0xFF6B5265.toInt(),false)
+        text(c,"OWNED $count",width*.77f,height*(y+.05f),width*.026f,0xFFFF8FBE.toInt(),true)
+        btn(c,.70f,y+.10f,.94f,y+.145f,"BUY $price")
+    }
     private fun btn(c:Canvas,l:Float,t:Float,r:Float,bb:Float,s:String){
         val x1=width*l; val y1=height*t; val x2=width*r; val y2=height*bb
         box(c,x1,y1,x2,y2,0xFF8B5E4A.toInt())
