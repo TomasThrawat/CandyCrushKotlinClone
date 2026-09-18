@@ -1104,6 +1104,9 @@ class GameView(context: Context) : View(context) {
         score += cleared * 25 + expanded.size * max(1, comboCount) * 3
         dropAndRefill()
 
+        // Match particles are a one-shot effect. Do not carry them into the next board state.
+        particles.clear()
+
         clearCells.clear()
         specialCell = null
         specialType = NONE
@@ -1466,7 +1469,8 @@ class GameView(context: Context) : View(context) {
             val p = iterator.next()
             p.x += p.vx * dt
             p.y += p.vy * dt
-            p.life -= dt * 2.4f
+            // Keep the match effect short and self-contained.
+            p.life -= dt * 4.8f
             if (p.life <= 0f) iterator.remove()
         }
     }
