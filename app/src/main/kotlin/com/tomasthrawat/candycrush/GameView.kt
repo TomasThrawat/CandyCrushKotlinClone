@@ -6,6 +6,7 @@ import android.graphics.*
 import android.media.AudioManager
 import android.media.ToneGenerator
 import android.view.MotionEvent
+import android.view.Choreographer
 import android.view.View
 import kotlin.math.abs
 import kotlin.math.max
@@ -14,6 +15,19 @@ import kotlin.random.Random
 import java.util.ArrayDeque
 
 class GameView(context: Context) : View(context) {
+    private var framePosted = false
+    private val frameCallback = object : Choreographer.FrameCallback {
+        override fun doFrame(frameTimeNanos: Long) {
+            framePosted = false
+            invalidate()
+        }
+    }
+    private fun requestFrame() {
+        if (!framePosted) {
+            framePosted = true
+            Choreographer.getInstance().postFrameCallback(frameCallback)
+        }
+    }
 
     companion object {
         private const val N = 8
@@ -362,184 +376,57 @@ class GameView(context: Context) : View(context) {
         }
     }
 
+
+    private fun candyBase(c: Canvas, x: Float, y: Float, r: Float, color: Int) {
+        val p = Paint(Paint.ANTI_ALIAS_FLAG)
+        p.color = color
+        c.drawCircle(x, y, r, p)
+        p.style = Paint.Style.STROKE
+        p.strokeWidth = r * .055f
+        p.color = 0x33000000
+        c.drawCircle(x, y, r * .94f, p)
+        p.style = Paint.Style.FILL
+        p.color = 0x55FFFFFF
+        c.drawOval(x-r*.52f,y-r*.64f,x-r*.08f,y-r*.25f,p)
+    }
+
     private fun drawCandy(c: Canvas, x: Float, y: Float, r: Float, candy: Candy) {
         when (candy.type) {
-            0 -> drawStrawberry(c, x, y, r)
-            1 -> drawLemon(c, x, y, r)
-            2 -> drawBerry(c, x, y, r)
-            3 -> drawApple(c, x, y, r)
-            4 -> drawFlower(c, x, y, r)
-            else -> drawCookie(c, x, y, r)
+            STRAWBERRY -> drawStrawberry(c,x,y,r)
+            LEMON -> drawLemon(c,x,y,r)
+            BERRY -> drawBerry(c,x,y,r)
+            APPLE -> drawApple(c,x,y,r)
+            FLOWER -> drawFlower(c,x,y,r)
+            COOKIE -> drawCookie(c,x,y,r)
+            WRAPPED -> drawStripe(c,x,y,r,true)
+            GEM -> drawColorMark(c,x,y,r)
+            ORANGE -> drawOrange(c,x,y,r)
+            DONUT -> drawDonut(c,x,y,r)
+            else -> candyBase(c,x,y,r,0xFFEF5A86.toInt())
         }
-
-        when (candy.special) {
-            H_STRIPE -> drawStripe(c, x, y, r, true)
-            V_STRIPE -> drawStripe(c, x, y, r, false)
-            WRAPPED -> drawWrappedMark(c, x, y, r)
-            COLOR_BOMB -> drawColorMark(c, x, y, r)
-        }
+        if (candy.special == STRIPED_H || candy.special == STRIPED_V) drawStripe(c,x,y,r,candy.special==STRIPED_H)
+        if (candy.special == WRAPPED_SPECIAL) drawWrappedMark(c,x,y,r)
+        if (candy.special == COLOR_SPECIAL) drawColorMark(c,x,y,r)
     }
 
-    private fun drawStrawberry(c: Canvas, x: Float, y: Float, r: Float) {
-        val p = Path()
-        p.moveTo(x, y + r * .94f)
-        p.cubicTo(x - r * 1.00f, y + r * .30f, x - r * .82f, y - r * .52f, x - r * .22f, y - r * .32f)
-        p.cubicTo(x - r * .07f, y - r * .48f, x + r * .07f, y - r * .48f, x + r * .22f, y - r * .32f)
-        p.cubicTo(x + r * .82f, y - r * .52f, x + r * 1.00f, y + r * .30f, x, y + r * .94f)
-        p.close()
-        gradient(c, 0xFFFF6D7E.toInt(), 0xFFD92851.toInt(), y - r, y + r)
-        c.drawPath(p, paint)
-        strokePath(c, p, 0x884F1930.toInt(), r * .045f)
-        solid(0xFF4C9655.toInt())
-        val leaf = Path()
-        leaf.moveTo(x, y - r * .28f)
-        leaf.cubicTo(x - r * .42f, y - r * .73f, x - r * .17f, y - r * .86f, x, y - r * .44f)
-        leaf.cubicTo(x + r * .17f, y - r * .86f, x + r * .42f, y - r * .73f, x, y - r * .28f)
-        leaf.close()
-        c.drawPath(leaf, paint)
-        solid(0xFFFFF1BF.toInt())
-        for (i in -1..1) {
-            val dx = i * r * .23f
-            c.drawOval(x + dx - r * .025f, y - r * .02f, x + dx + r * .025f, y + r * .12f, paint)
-        }
-        solid(0x66FFFFFF)
-        c.drawOval(x - r * .50f, y - r * .37f, x - r * .23f, y - r * .10f, paint)
-        finishPaint()
+    private fun drawStrawberry(c: Canvas,x:Float,y:Float,r:Float) {
+        val p=Paint(Paint.ANTI_ALIAS_FLAG); p.color=0xFFF44763.toInt()
+        val path=Path().apply{moveTo(x,y+r*.82f); cubicTo(x-r*.92f,y+r*.12f,x-r*.78f,y-r*.68f,x,y-r*.55f); cubicTo(x+r*.78f,y-r*.68f,x+r*.92f,y+r*.12f,x,y+r*.82f); close()}
+        c.drawPath(path,p)
+        p.color=0xFF4CAF62.toInt(); val leaf=Path().apply{moveTo(x,y-r*.5f); lineTo(x-r*.55f,y-r*.92f); lineTo(x-r*.08f,y-r*.74f); lineTo(x,y-r*1.02f); lineTo(x+r*.12f,y-r*.72f); lineTo(x+r*.58f,y-r*.9f); close()}; c.drawPath(leaf,p)
+        p.color=0xFFFFD36B.toInt(); for(i in -1..1) c.drawOval(x+i*r*.25f-r*.035f,y-r*.15f,x+i*r*.25f+r*.035f,y+r*.02f,p)
+        p.color=0x66FFFFFF; c.drawOval(x-r*.55f,y-r*.4f,x-r*.2f,y-r*.05f,p)
     }
-
-    private fun drawLemon(c: Canvas, x: Float, y: Float, r: Float) {
-        val p = Path()
-        p.moveTo(x - r * .90f, y)
-        p.cubicTo(x - r * .68f, y - r * .58f, x - r * .18f, y - r * .78f, x + r * .28f, y - r * .62f)
-        p.cubicTo(x + r * .86f, y - r * .42f, x + r * .94f, y + r * .12f, x + r * .50f, y + r * .60f)
-        p.cubicTo(x + r * .02f, y + r * .94f, x - r * .72f, y + r * .62f, x - r * .90f, y)
-        p.close()
-        gradient(c, 0xFFFFE56D.toInt(), 0xFFFFB929.toInt(), y - r, y + r)
-        c.drawPath(p, paint)
-        strokePath(c, p, 0x88513B12.toInt(), r * .045f)
-        solid(0x66FFFFFF)
-        c.drawOval(x - r * .46f, y - r * .42f, x - r * .14f, y - r * .15f, paint)
-        finishPaint()
-    }
-
-    private fun drawBerry(c: Canvas, x: Float, y: Float, r: Float) {
-        val p = Path()
-        p.moveTo(x, y - r * .92f)
-        p.cubicTo(x + r * .62f, y - r * .92f, x + r * .98f, y - r * .46f, x + r * .88f, y + r * .13f)
-        p.cubicTo(x + r * .78f, y + r * .72f, x + r * .32f, y + r * .96f, x, y + r * .96f)
-        p.cubicTo(x - r * .32f, y + r * .96f, x - r * .78f, y + r * .72f, x - r * .88f, y + r * .13f)
-        p.cubicTo(x - r * .98f, y - r * .46f, x - r * .62f, y - r * .92f, x, y - r * .92f)
-        p.close()
-        gradient(c, 0xFF718FF2.toInt(), 0xFF304CB5.toInt(), y - r, y + r)
-        c.drawPath(p, paint)
-        strokePath(c, p, 0x88304481.toInt(), r * .045f)
-        val cap = Path()
-        cap.moveTo(x, y - r * .54f)
-        cap.lineTo(x - r * .28f, y - r * .82f)
-        cap.lineTo(x - r * .08f, y - r * .42f)
-        cap.lineTo(x + r * .08f, y - r * .42f)
-        cap.lineTo(x + r * .28f, y - r * .82f)
-        cap.close()
-        solid(0xFF9DAFFF.toInt())
-        c.drawPath(cap, paint)
-        solid(0x66FFFFFF)
-        c.drawOval(x - r * .48f, y - r * .38f, x - r * .20f, y - r * .13f, paint)
-        finishPaint()
-    }
-
-    private fun drawApple(c: Canvas, x: Float, y: Float, r: Float) {
-        val p = Path()
-        p.moveTo(x, y - r * .50f)
-        p.cubicTo(x - r * .42f, y - r * .82f, x - r * .92f, y - r * .48f, x - r * .86f, y + r * .08f)
-        p.cubicTo(x - r * .80f, y + r * .70f, x - r * .32f, y + r * .96f, x, y + r * .78f)
-        p.cubicTo(x + r * .32f, y + r * .96f, x + r * .80f, y + r * .70f, x + r * .86f, y + r * .08f)
-        p.cubicTo(x + r * .92f, y - r * .48f, x + r * .42f, y - r * .82f, x, y - r * .50f)
-        p.close()
-        gradient(c, 0xFF76D681.toInt(), 0xFF31964E.toInt(), y - r, y + r)
-        c.drawPath(p, paint)
-        strokePath(c, p, 0x88502737.toInt(), r * .045f)
-        solid(0xFF6F4B35.toInt())
-        c.drawRoundRect(x - r * .045f, y - r * .82f, x + r * .045f, y - r * .42f, r * .04f, r * .04f, paint)
-        val leaf = Path()
-        leaf.moveTo(x + r * .05f, y - r * .64f)
-        leaf.cubicTo(x + r * .38f, y - r * .90f, x + r * .72f, y - r * .64f, x + r * .40f, y - r * .38f)
-        leaf.cubicTo(x + r * .22f, y - r * .24f, x + r * .08f, y - r * .32f, x + r * .05f, y - r * .64f)
-        leaf.close()
-        solid(0xFF4C9C57.toInt())
-        c.drawPath(leaf, paint)
-        solid(0x66FFFFFF)
-        c.drawOval(x - r * .50f, y - r * .39f, x - r * .23f, y - r * .10f, paint)
-        finishPaint()
-    }
-
-    private fun drawFlower(c: Canvas, x: Float, y: Float, r: Float) {
-        val positions = arrayOf(
-            -0.38f to -0.62f, 0.38f to -0.62f, 0.62f to 0f,
-            0.38f to 0.62f, -0.38f to 0.62f, -0.62f to 0f
-        )
-        for (p in positions) {
-            gradient(c, 0xFFE79AE3.toInt(), 0xFFB85BBB.toInt(), y - r, y + r)
-            c.drawCircle(x + p.first * r, y + p.second * r, r * .42f, paint)
-        }
-        solid(0xFFFFD15A.toInt())
-        c.drawCircle(x, y, r * .33f, paint)
-        solid(0x66FFFFFF)
-        c.drawCircle(x - r * .12f, y - r * .12f, r * .08f, paint)
-        finishPaint()
-    }
-
-    private fun drawCookie(c: Canvas, x: Float, y: Float, r: Float) {
-        val p = Path()
-        p.moveTo(x - r * .82f, y - r * .18f)
-        p.cubicTo(x - r * .86f, y - r * .70f, x - r * .34f, y - r * .92f, x + r * .10f, y - r * .84f)
-        p.cubicTo(x + r * .72f, y - r * .72f, x + r * .92f, y - r * .18f, x + r * .78f, y + r * .42f)
-        p.cubicTo(x + r * .62f, y + r * .82f, x - r * .10f, y + r * .90f, x - r * .60f, y + r * .62f)
-        p.cubicTo(x - r * .90f, y + r * .44f, x - r * .94f, y + r * .10f, x - r * .82f, y - r * .18f)
-        p.close()
-        gradient(c, 0xFFD59563.toInt(), 0xFFA55E40.toInt(), y - r, y + r)
-        c.drawPath(p, paint)
-        strokePath(c, p, 0x88482B22.toInt(), r * .045f)
-        solid(0xFF5E332C.toInt())
-        val chips = arrayOf(
-            -.35f to -.15f, .10f to -.37f, .38f to .02f,
-            -.16f to .28f, .35f to .42f, -.50f to .34f
-        )
-        chips.forEach { p2 -> c.drawCircle(x + p2.first * r, y + p2.second * r, r * .07f, paint) }
-        solid(0x55FFFFFF)
-        c.drawOval(x - r * .50f, y - r * .45f, x - r * .20f, y - r * .20f, paint)
-        finishPaint()
-    }
-
-    private fun drawStripe(c: Canvas, x: Float, y: Float, r: Float, horizontal: Boolean) {
-        outline(0xFFEFFFFF.toInt(), r * .10f)
-        paint.strokeCap = Paint.Cap.ROUND
-        if (horizontal) c.drawLine(x - r * .60f, y, x + r * .60f, y, paint)
-        else c.drawLine(x, y - r * .60f, x, y + r * .60f, paint)
-        paint.strokeCap = Paint.Cap.BUTT
-        finishPaint()
-    }
-
-    private fun drawWrappedMark(c: Canvas, x: Float, y: Float, r: Float) {
-        outline(0xFFEFFFFF.toInt(), r * .095f)
-        c.drawCircle(x, y, r * .49f, paint)
-        finishPaint()
-    }
-
-    private fun drawColorMark(c: Canvas, x: Float, y: Float, r: Float) {
-        solid(Color.WHITE)
-        c.drawCircle(x, y, r * .46f, paint)
-        solid(0xFF665789.toInt())
-        for (i in 0 until 6) {
-            val a = Math.toRadians(i * 60.0)
-            c.drawCircle(
-                x + kotlin.math.cos(a).toFloat() * r * .31f,
-                y + kotlin.math.sin(a).toFloat() * r * .31f,
-                r * .065f, paint
-            )
-        }
-        finishPaint()
-    }
-
+    private fun drawLemon(c: Canvas,x:Float,y:Float,r:Float){ val p=Paint(1); p.color=0xFFFFD84D.toInt(); val q=Path().apply{moveTo(x-r*.95f,y);cubicTo(x-r*.7f,y-r*.7f,x+r*.55f,y-r*.78f,x+r*.95f,y);cubicTo(x+r*.55f,y+r*.78f,x-r*.7f,y+r*.7f,x-r*.95f,y);close()};c.drawPath(q,p);p.color=0x55FFFFFF;c.drawOval(x-r*.55f,y-r*.45f,x-r*.12f,y-r*.05f,p)}
+    private fun drawBerry(c: Canvas,x:Float,y:Float,r:Float){candyBase(c,x,y,r,0xFF6874E8.toInt());val p=Paint(1);p.color=0xFF3F51B5.toInt();c.drawCircle(x-r*.3f,y-r*.55f,r*.08f,p);c.drawCircle(x+r*.05f,y-r*.62f,r*.08f,p);c.drawCircle(x+r*.38f,y-r*.48f,r*.08f,p)}
+    private fun drawApple(c: Canvas,x:Float,y:Float,r:Float){val p=Paint(1);p.color=0xFFF04F5F.toInt();val q=Path().apply{moveTo(x,y+r*.8f);cubicTo(x-r*.9f,y+r*.45f,x-r*.78f,y-r*.55f,x-r*.18f,y-r*.62f);cubicTo(x,y-r*.8f,x+r*.08f,y-r*.8f,x+r*.2f,y-r*.6f);cubicTo(x+r*.8f,y-r*.55f,x+r*.88f,y+r*.45f,x,y+r*.8f);close()};c.drawPath(q,p);p.color=0xFF4CAF62.toInt();c.drawOval(x+r*.02f,y-r*.95f,x+r*.58f,y-r*.6f,p);p.color=0xFF7A4E32.toInt();c.drawRoundRect(x-r*.04f,y-r*.82f,x+r*.08f,y-r*.52f,r*.05f,r*.05f,p)}
+    private fun drawFlower(c: Canvas,x:Float,y:Float,r:Float){val p=Paint(1);p.color=0xFFFF83B5.toInt();for(i in 0..5){val a=Math.toRadians(i*60.0);c.drawCircle(x+cos(a).toFloat()*r*.48f,y+sin(a).toFloat()*r*.48f,r*.42f,p)};p.color=0xFFFFD34E.toInt();c.drawCircle(x,y,r*.27f,p)}
+    private fun drawCookie(c: Canvas,x:Float,y:Float,r:Float){val p=Paint(1);p.color=0xFFC98A52.toInt();c.drawCircle(x,y,r*.86f,p);p.color=0xFF754A2E.toInt();for(i in 0..5){val a=i*1.047f;c.drawCircle(x+cos(a)*r*.45f,y+sin(a)*r*.45f,r*.09f,p)}}
+    private fun drawStripe(c: Canvas,x:Float,y:Float,r:Float,horizontal:Boolean){candyBase(c,x,y,r,0xFFFF6FA3.toInt());val p=Paint(1);p.color=0xFFFFF5FA.toInt();p.strokeWidth=r*.12f;for(i in -1..1){if(horizontal)c.drawLine(x-r*.65f,y+i*r*.25f,x+r*.65f,y+i*r*.25f,p)else c.drawLine(x+i*r*.25f,y-r*.65f,x+i*r*.25f,y+r*.65f,p)}}
+    private fun drawWrappedMark(c: Canvas,x:Float,y:Float,r:Float){val p=Paint(1);p.color=0xFFFFD34E.toInt();c.drawCircle(x,y,r*.25f,p);p.color=0xFFFFF2B0.toInt();c.drawCircle(x,y,r*.1f,p)}
+    private fun drawColorMark(c: Canvas,x:Float,y:Float,r:Float){val p=Paint(1);p.color=0xFFFFFFFF.toInt();for(i in 0..7){val a=i*Math.PI/4;c.drawLine(x,y,x+cos(a).toFloat()*r*.75f,y+sin(a).toFloat()*r*.75f,p)}}
+    private fun drawOrange(c: Canvas,x:Float,y:Float,r:Float){candyBase(c,x,y,r*.9f,0xFFFF9F32.toInt());val p=Paint(1);p.color=0xFF4CAF62.toInt();c.drawOval(x-r*.05f,y-r*.98f,x+r*.5f,y-r*.65f,p);p.color=0x55FFFFFF;c.drawOval(x-r*.5f,y-r*.55f,x-r*.1f,y-r*.12f,p)}
+    private fun drawDonut(c: Canvas,x:Float,y:Float,r:Float){val p=Paint(1);p.color=0xFFD58B5C.toInt();c.drawCircle(x,y,r*.88f,p);p.color=0xFFFF79AA.toInt();c.drawCircle(x,y,r*.66f,p);p.color=0xFF7B4C35.toInt();c.drawCircle(x,y,r*.22f,p);p.color=0xFFFFFFFF.toInt();for(i in 0..5){val a=i*1.047f;c.drawRoundRect(x+cos(a)*r*.4f-r*.035f,y+sin(a)*r*.4f-r*.1f,x+cos(a)*r*.4f+r*.035f,y+sin(a)*r*.4f+r*.1f,.03f,.03f,p)}}
     private fun drawJelly(c: Canvas, x: Float, y: Float, r: Float) {
         solid(0x558C6DFF.toInt())
         c.drawCircle(x, y, r * .98f, paint)
