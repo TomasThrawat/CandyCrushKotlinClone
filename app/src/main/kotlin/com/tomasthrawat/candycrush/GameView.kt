@@ -118,75 +118,128 @@ class GameView(context: Context) : View(context) {
     }
     private fun box(c:Canvas,l:Float,t:Float,r:Float,bb:Float,color:Int){paint.style=Paint.Style.FILL;paint.color=color;c.drawRoundRect(l,t,r,bb,14f,14f,paint)}
     private fun text(c:Canvas,s:String,x:Float,y:Float,size:Float,color:Int,bold:Boolean){paint.color=color;paint.textSize=size;paint.textAlign=Paint.Align.CENTER;paint.typeface=Typeface.create("sans",if(bold)Typeface.BOLD else Typeface.NORMAL);c.drawText(s,x,y,paint)}
+    private fun fillGradient(c:Canvas, color:Int, top:Int=Color.WHITE, bottom:Int=color){
+        paint.style=Paint.Style.FILL
+        paint.shader=LinearGradient(0f,-1f,0f,1f,top,bottom,Shader.TileMode.CLAMP)
+    }
+    private fun solid(color:Int){ paint.shader=null;paint.style=Paint.Style.FILL;paint.color=color }
+    private fun outline(color:Int,width:Float){ paint.shader=null;paint.style=Paint.Style.STROKE;paint.strokeWidth=width;paint.color=color }
+    private fun finishPaint(){ paint.shader=null;paint.style=Paint.Style.FILL }
+
     private fun candy(c:Canvas,x:Float,y:Float,r:Float,v:Int){
         when(v.mod(10)){
-            0->drawStrawberry(c,x,y,r,0xFFE94F64.toInt())
-            1->drawLemon(c,x,y,r,0xFFFFC94A.toInt())
-            2->drawBlueberry(c,x,y,r,0xFF5C7CFA.toInt())
-            3->drawApple(c,x,y,r,0xFF63B86B.toInt())
-            4->drawFlower(c,x,y,r,0xFFD889D4.toInt())
-            5->drawCookie(c,x,y,r,0xFFB97850.toInt())
-            6->drawWrappedCandy(c,x,y,r,0xFF59C7C9.toInt())
-            7->drawGem(c,x,y,r,0xFF9B72E8.toInt())
-            8->drawOrange(c,x,y,r,0xFFFF9147.toInt())
-            else->drawDonut(c,x,y,r,0xFFFFA66B.toInt())
+            0->drawStrawberry(c,x,y,r,0xFFE84D63.toInt())
+            1->drawLemon(c,x,y,r,0xFFFFC83D.toInt())
+            2->drawBlueberry(c,x,y,r,0xFF5277E8.toInt())
+            3->drawApple(c,x,y,r,0xFF59B966.toInt())
+            4->drawFlower(c,x,y,r,0xFFD477D0.toInt())
+            5->drawCookie(c,x,y,r,0xFFB9784E.toInt())
+            6->drawWrappedCandy(c,x,y,r,0xFF45BFC2.toInt())
+            7->drawGem(c,x,y,r,0xFF9068DF.toInt())
+            8->drawOrange(c,x,y,r,0xFFFF9142.toInt())
+            else->drawDonut(c,x,y,r,0xFFFF9E67.toInt())
         }
+        finishPaint()
     }
+
     private fun drawStrawberry(c:Canvas,x:Float,y:Float,r:Float,color:Int){
-        paint.color=color
-        val p=Path();p.moveTo(x,y+r);p.cubicTo(x-r*1.05f,y+r*.25f,x-r*.78f,y-r*.65f,x,y-r*.28f);p.cubicTo(x+r*.78f,y-r*.65f,x+r*1.05f,y+r*.25f,x,y+r);p.close();c.drawPath(p,paint)
-        paint.color=0xFF4E9A55.toInt();val leaf=Path();leaf.moveTo(x,y-r*.32f);leaf.lineTo(x-r*.48f,y-r*.75f);leaf.lineTo(x-r*.10f,y-r*.68f);leaf.lineTo(x,y-r*.98f);leaf.lineTo(x+r*.12f,y-r*.68f);leaf.lineTo(x+r*.48f,y-r*.75f);leaf.close();c.drawPath(leaf,paint)
-        paint.color=0xFFFFF2D0.toInt();for(i in -1..1)c.drawOval(x+i*r*.28f,y-r*.02f,x+i*r*.28f+r*.055f,y+r*.13f,paint)
+        val p=Path()
+        p.moveTo(x,y+r*.94f)
+        p.cubicTo(x-r*1.02f,y+r*.38f,x-r*.86f,y-r*.45f,x-r*.18f,y-r*.34f)
+        p.cubicTo(x-r*.06f,y-r*.42f,x+r*.06f,y-r*.42f,x+r*.18f,y-r*.34f)
+        p.cubicTo(x+r*.86f,y-r*.45f,x+r*1.02f,y+r*.38f,x,y+r*.94f)
+        p.close()
+        fillGradient(c,color,0xFFFF6A7B.toInt(),color);c.drawPath(p,paint)
+        outline(0x334B1820, r*.045f);c.drawPath(p,paint)
+        solid(0xFF4D9B55.toInt())
+        val leaf=Path();leaf.moveTo(x,y-r*.30f);leaf.cubicTo(x-r*.48f,y-r*.66f,x-r*.40f,y-r*.90f,x-r*.08f,y-r*.55f)
+        leaf.cubicTo(x-r*.02f,y-r*.86f,x+r*.02f,y-r*.86f,x+r*.08f,y-r*.55f)
+        leaf.cubicTo(x+r*.40f,y-r*.90f,x+r*.48f,y-r*.66f,x,y-r*.30f);leaf.close();c.drawPath(leaf,paint)
+        solid(0xFFFFF3C8.toInt())
+        for(i in -1..1){val dx=i*r*.25f;c.drawOval(x+dx-r*.025f,y-r*.02f,x+dx+r*.025f,y+r*.14f,paint)}
+        solid(0x55FFFFFF.toInt());c.drawOval(x-r*.48f,y-r*.38f,x-r*.20f,y-r*.10f,paint)
     }
+
     private fun drawLemon(c:Canvas,x:Float,y:Float,r:Float,color:Int){
-        paint.color=color
-        val p=Path();p.moveTo(x-r*.88f,y-r*.08f);p.cubicTo(x-r*.62f,y-r*.70f,x+r*.42f,y-r*.82f,x+r*.90f,y-r*.05f);p.cubicTo(x+r*.56f,y+r*.66f,x-r*.35f,y+r*.72f,x-r*.88f,y-r*.08f);p.close();c.drawPath(p,paint)
-        paint.color=0x44FFFFFF;c.drawOval(x-r*.45f,y-r*.40f,x-r*.08f,y-r*.05f,paint)
+        val p=Path();p.moveTo(x-r*.92f,y-r*.08f)
+        p.cubicTo(x-r*.72f,y-r*.62f,x-r*.18f,y-r*.84f,x+r*.28f,y-r*.72f)
+        p.cubicTo(x+r*.84f,y-r*.56f,x+r*.94f,y+r*.02f,x+r*.52f,y+r*.56f)
+        p.cubicTo(x+r*.05f,y+r*.94f,x-r*.64f,y+r*.64f,x-r*.92f,y-r*.08f);p.close()
+        fillGradient(c,color,0xFFFFE66B.toInt(),color);c.drawPath(p,paint);outline(0x334B3A12,r*.045f);c.drawPath(p,paint)
+        solid(0x55FFFFFF.toInt());c.drawOval(x-r*.50f,y-r*.43f,x-r*.16f,y-r*.12f,paint)
+        solid(0x33FFFFFF.toInt());c.drawOval(x-r*.08f,y-r*.54f,x+r*.20f,y-r*.28f,paint)
     }
+
     private fun drawBlueberry(c:Canvas,x:Float,y:Float,r:Float,color:Int){
-        paint.color=color
-        val p=Path();p.moveTo(x-r*.78f,y-r*.12f);p.cubicTo(x-r*.72f,y-r*.70f,x+r*.72f,y-r*.70f,x+r*.78f,y-r*.12f);p.cubicTo(x+r*.68f,y+r*.60f,x-r*.68f,y+r*.60f,x-r*.78f,y-r*.12f);p.close();c.drawPath(p,paint)
-        paint.color=0xFF4C3A8A.toInt();val cap=Path();cap.moveTo(x-r*.42f,y-r*.40f);cap.lineTo(x,y-r*.78f);cap.lineTo(x+r*.42f,y-r*.40f);cap.lineTo(x+r*.10f,y-r*.20f);cap.lineTo(x-r*.10f,y-r*.20f);cap.close();c.drawPath(cap,paint)
-        paint.color=0x55FFFFFF;c.drawOval(x-r*.42f,y-r*.35f,x-r*.12f,y-r*.05f,paint)
+        val p=Path();p.moveTo(x-r*.78f,y-r*.06f);p.cubicTo(x-r*.72f,y-r*.68f,x+r*.72f,y-r*.68f,x+r*.78f,y-r*.06f)
+        p.cubicTo(x+r*.72f,y+r*.62f,x+r*.22f,y+r*.82f,x,y+r*.76f)
+        p.cubicTo(x-r*.22f,y+r*.82f,x-r*.72f,y+r*.62f,x-r*.78f,y-r*.06f);p.close()
+        fillGradient(c,color,0xFF7895FF.toInt(),color);c.drawPath(p,paint);outline(0x33303E79,r*.045f);c.drawPath(p,paint)
+        solid(0xFF3E347D.toInt())
+        val cap=Path();cap.moveTo(x-r*.44f,y-r*.30f);cap.lineTo(x-r*.18f,y-r*.56f);cap.lineTo(x,y-r*.76f);cap.lineTo(x+r*.18f,y-r*.56f);cap.lineTo(x+r*.44f,y-r*.30f);cap.lineTo(x+r*.14f,y-r*.18f);cap.lineTo(x,y-r*.34f);cap.lineTo(x-r*.14f,y-r*.18f);cap.close();c.drawPath(cap,paint)
+        solid(0x66FFFFFF.toInt());c.drawOval(x-r*.45f,y-r*.40f,x-r*.17f,y-r*.13f,paint)
     }
+
     private fun drawApple(c:Canvas,x:Float,y:Float,r:Float,color:Int){
-        paint.color=color
-        val p=Path();p.moveTo(x,y+r*.92f);p.cubicTo(x-r*1.05f,y+r*.38f,x-r*.80f,y-r*.72f,x,y-r*.30f);p.cubicTo(x+r*.80f,y-r*.72f,x+r*1.05f,y+r*.38f,x,y+r*.92f);p.close();c.drawPath(p,paint)
-        paint.color=0xFF4E9A55.toInt();c.drawOval(x+r*.03f,y-r*.86f,x+r*.53f,y-r*.48f,paint);paint.color=0xFF6D4938.toInt();c.drawRoundRect(x-r*.055f,y-r*.96f,x+r*.055f,y-r*.62f,4f,4f,paint)
-        paint.color=0x44FFFFFF;c.drawOval(x-r*.42f,y-r*.34f,x-r*.12f,y-r*.05f,paint)
+        val p=Path();p.moveTo(x,y+r*.90f)
+        p.cubicTo(x-r*.92f,y+r*.48f,x-r*.94f,y-r*.48f,x-r*.30f,y-r*.43f)
+        p.cubicTo(x-r*.10f,y-r*.45f,x-r*.04f,y-r*.28f,x,y-r*.18f)
+        p.cubicTo(x+r*.04f,y-r*.28f,x+r*.10f,y-r*.45f,x+r*.30f,y-r*.43f)
+        p.cubicTo(x+r*.94f,y-r*.48f,x+r*.92f,y+r*.48f,x,y+r*.90f);p.close()
+        fillGradient(c,color,0xFF82D988.toInt(),color);c.drawPath(p,paint);outline(0x33405D3F,r*.045f);c.drawPath(p,paint)
+        solid(0xFF5AA05A.toInt());c.drawOval(x+r*.04f,y-r*.82f,x+r*.48f,y-r*.48f,paint)
+        solid(0xFF6D4938.toInt());c.drawRoundRect(x-r*.045f,y-r*.88f,x+r*.045f,y-r*.55f,r*.03f,r*.03f,paint)
+        solid(0x55FFFFFF.toInt());c.drawOval(x-r*.48f,y-r*.34f,x-r*.17f,y-r*.06f,paint)
     }
+
     private fun drawFlower(c:Canvas,x:Float,y:Float,r:Float,color:Int){
-        paint.color=color
-        for(i in 0..5){val a=i*Math.PI/3;val px=x+(kotlin.math.cos(a)*r*.52f).toFloat();val py=y+(kotlin.math.sin(a)*r*.52f).toFloat();c.drawCircle(px,py,r*.42f,paint)}
-        paint.color=0xFFFFD45A.toInt();c.drawCircle(x,y,r*.32f,paint)
+        fillGradient(c,color,0xFFF0A0E9.toInt(),color)
+        for(i in 0..5){val a=i*Math.PI/3;val px=x+(kotlin.math.cos(a)*r*.47f).toFloat();val py=y+(kotlin.math.sin(a)*r*.47f).toFloat();c.drawOval(px-r*.37f,py-r*.49f,px+r*.37f,py+r*.49f,paint)}
+        solid(0xFFFFD45A.toInt());c.drawCircle(x,y,r*.29f,paint)
+        solid(0x66FFFFFF.toInt());c.drawCircle(x-r*.09f,y-r*.09f,r*.09f,paint)
     }
+
     private fun drawCookie(c:Canvas,x:Float,y:Float,r:Float,color:Int){
-        paint.color=color
-        val p=Path();p.moveTo(x-r*.82f,y-r*.15f);p.cubicTo(x-r*.68f,y-r*.72f,x+r*.50f,y-r*.82f,x+r*.82f,y-r*.10f);p.cubicTo(x+r*.62f,y+r*.72f,x-r*.48f,y+r*.76f,x-r*.82f,y-r*.15f);p.close();c.drawPath(p,paint)
-        paint.color=0xFF704A36.toInt();for(i in 0..5){val a=i*Math.PI/3;c.drawCircle(x+(kotlin.math.cos(a)*r*.43f).toFloat(),y+(kotlin.math.sin(a)*r*.43f).toFloat(),r*.085f,paint)}
-        paint.color=0x33FFFFFF;c.drawOval(x-r*.46f,y-r*.45f,x-r*.18f,y-r*.18f,paint)
+        val p=Path();p.moveTo(x-r*.78f,y-r*.16f);p.cubicTo(x-r*.70f,y-r*.72f,x+r*.50f,y-r*.82f,x+r*.80f,y-r*.10f)
+        p.cubicTo(x+r*.64f,y+r*.70f,x-r*.44f,y+r*.76f,x-r*.78f,y-r*.16f);p.close()
+        fillGradient(c,color,0xFFD89A68.toInt(),color);c.drawPath(p,paint);outline(0x334E3225,r*.045f);c.drawPath(p,paint)
+        solid(0xFF754C35.toInt())
+        val chips=arrayOf(floatArrayOf(-.38f,-.18f),floatArrayOf(.20f,-.38f),floatArrayOf(.42f,.16f),floatArrayOf(-.12f,.40f),floatArrayOf(-.45f,.38f))
+        for(a in chips)c.drawCircle(x+r*a[0],y+r*a[1],r*.075f,paint)
+        solid(0x55FFFFFF.toInt());c.drawOval(x-r*.47f,y-r*.45f,x-r*.19f,y-r*.19f,paint)
     }
+
     private fun drawWrappedCandy(c:Canvas,x:Float,y:Float,r:Float,color:Int){
-        paint.color=color;c.drawRoundRect(x-r*.52f,y-r*.42f,x+r*.52f,y+r*.42f,r*.16f,r*.16f,paint)
-        val p=Path();p.moveTo(x-r*.52f,y-r*.30f);p.lineTo(x-r*.98f,y-r*.62f);p.lineTo(x-r*.86f,y);p.lineTo(x-r*.98f,y+r*.62f);p.lineTo(x-r*.52f,y+r*.30f);p.close();c.drawPath(p,paint)
-        val q=Path();q.moveTo(x+r*.52f,y-r*.30f);q.lineTo(x+r*.98f,y-r*.62f);q.lineTo(x+r*.86f,y);q.lineTo(x+r*.98f,y+r*.62f);q.lineTo(x+r*.52f,y+r*.30f);q.close();c.drawPath(q,paint)
-        paint.color=0x44FFFFFF;c.drawRoundRect(x-r*.28f,y-r*.28f,x-r*.02f,y-r*.02f,r*.05f,r*.05f,paint)
+        fillGradient(c,color,0xFF86E1E1.toInt(),color);c.drawRoundRect(x-r*.48f,y-r*.40f,x+r*.48f,y+r*.40f,r*.15f,r*.15f,paint)
+        val left=Path();left.moveTo(x-r*.46f,y-r*.27f);left.lineTo(x-r*.98f,y-r*.60f);left.lineTo(x-r*.83f,y);left.lineTo(x-r*.98f,y+r*.60f);left.lineTo(x-r*.46f,y+r*.27f);left.close();c.drawPath(left,paint)
+        val right=Path();right.moveTo(x+r*.46f,y-r*.27f);right.lineTo(x+r*.98f,y-r*.60f);right.lineTo(x+r*.83f,y);right.lineTo(x+r*.98f,y+r*.60f);right.lineTo(x+r*.46f,y+r*.27f);right.close();c.drawPath(right,paint)
+        solid(0x55FFFFFF.toInt());c.drawRoundRect(x-r*.28f,y-r*.25f,x+r*.05f,y-r*.02f,r*.04f,r*.04f,paint)
+        outline(0x33505F60,r*.04f);c.drawRoundRect(x-r*.48f,y-r*.40f,x+r*.48f,y+r*.40f,r*.15f,r*.15f,paint)
     }
+
     private fun drawGem(c:Canvas,x:Float,y:Float,r:Float,color:Int){
-        paint.color=color;val p=Path();p.moveTo(x,y-r);p.lineTo(x+r*.78f,y-r*.38f);p.lineTo(x+r*.55f,y+r*.78f);p.lineTo(x-r*.55f,y+r*.78f);p.lineTo(x-r*.78f,y-r*.38f);p.close();c.drawPath(p,paint)
-        paint.color=0x55FFFFFF;val h=Path();h.moveTo(x-r*.42f,y-r*.34f);h.lineTo(x-r*.08f,y-r*.62f);h.lineTo(x+r*.08f,y-r*.34f);h.lineTo(x-r*.12f,y-r*.05f);h.close();c.drawPath(h,paint)
+        val p=Path();p.moveTo(x,y-r);p.lineTo(x+r*.74f,y-r*.38f);p.lineTo(x+r*.56f,y+r*.68f);p.lineTo(x,y+r*.88f);p.lineTo(x-r*.56f,y+r*.68f);p.lineTo(x-r*.74f,y-r*.38f);p.close()
+        fillGradient(c,color,0xFFB99AF4.toInt(),color);c.drawPath(p,paint);outline(0x33483A70,r*.045f);c.drawPath(p,paint)
+        solid(0x66FFFFFF.toInt());val h=Path();h.moveTo(x-r*.38f,y-r*.34f);h.lineTo(x-r*.08f,y-r*.64f);h.lineTo(x+r*.10f,y-r*.32f);h.lineTo(x-r*.08f,y-r*.04f);h.close();c.drawPath(h,paint)
+        solid(0x33503B78.toInt());val facet=Path();facet.moveTo(x-r*.74f,y-r*.38f);facet.lineTo(x-r*.20f,y-r*.38f);facet.lineTo(x-r*.56f,y+r*.68f);facet.close();c.drawPath(facet,paint)
     }
+
     private fun drawOrange(c:Canvas,x:Float,y:Float,r:Float,color:Int){
-        paint.color=color;val p=Path();p.moveTo(x,y-r*.88f);p.cubicTo(x+r*.70f,y-r*.78f,x+r*.92f,y+r*.20f,x+r*.42f,y+r*.78f);p.cubicTo(x-r*.20f,y+r*.98f,x-r*.88f,y+r*.40f,x-r*.72f,y-r*.20f);p.cubicTo(x-r*.58f,y-r*.70f,x-r*.22f,y-r*.86f,x,y-r*.88f);p.close();c.drawPath(p,paint)
-        paint.color=0xFF4E9A55.toInt();c.drawOval(x-r*.05f,y-r*.98f,x+r*.40f,y-r*.62f,paint)
-        paint.color=0x44FFFFFF;c.drawOval(x-r*.42f,y-r*.48f,x-r*.14f,y-r*.18f,paint)
+        val p=Path();p.moveTo(x,y-r*.88f);p.cubicTo(x+r*.66f,y-r*.82f,x+r*.92f,y-r*.12f,x+r*.48f,y+r*.64f)
+        p.cubicTo(x+r*.12f,y+r*.94f,x-r*.72f,y+r*.66f,x-r*.76f,y-r*.12f);p.cubicTo(x-r*.70f,y-r*.70f,x-r*.25f,y-r*.88f,x,y-r*.88f);p.close()
+        fillGradient(c,color,0xFFFFB36C.toInt(),color);c.drawPath(p,paint);outline(0x334F351F,r*.045f);c.drawPath(p,paint)
+        solid(0xFF4F9B55.toInt());c.drawOval(x-r*.03f,y-r*.94f,x+r*.38f,y-r*.64f,paint)
+        solid(0x55FFFFFF.toInt());c.drawOval(x-r*.43f,y-r*.46f,x-r*.15f,y-r*.18f,paint)
     }
+
     private fun drawDonut(c:Canvas,x:Float,y:Float,r:Float,color:Int){
-        paint.color=color;c.drawCircle(x,y,r*.78f,paint)
-        paint.color=0xFF8B5E4A.toInt();c.drawCircle(x,y,r*.25f,paint)
-        paint.color=0xFFFFD2A8.toInt();c.drawCircle(x,y,r*.12f,paint)
-        paint.color=0x55FFFFFF;c.drawOval(x-r*.48f,y-r*.48f,x-r*.12f,y-r*.20f,paint)
+        fillGradient(c,color,0xFFFFC08D.toInt(),color);c.drawCircle(x,y,r*.78f,paint)
+        solid(0xFFB96D4D.toInt());c.drawCircle(x,y,r*.29f,paint)
+        solid(0xFFFFE0B5.toInt());c.drawCircle(x,y,r*.17f,paint)
+        solid(0x55FFFFFF.toInt());c.drawOval(x-r*.48f,y-r*.46f,x-r*.18f,y-r*.18f,paint)
+        outline(0x334F3328,r*.045f);c.drawCircle(x,y,r*.78f,paint)
     }
+
     private fun helperBtn(c:Canvas,l:Float,t:Float,r:Float,bb:Float,type:Int,count:Int){
         val x1=width*l;val y1=height*t;val x2=width*r;val y2=height*bb
         box(c,x1,y1,x2,y2,0xFF8B5E4A.toInt())
