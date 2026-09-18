@@ -29,12 +29,31 @@ class GameView(context: Context) : View(context) {
     private var sound=prefs.getBoolean("sound",true)
     private var look=prefs.getString("look","CLASSIC") ?: "CLASSIC"
     init { setLayerType(LAYER_TYPE_HARDWARE,null); isFocusable=true }
-    override fun onDraw(c:Canvas){c.drawColor(if(look=="SNOW")0xFFEAF7FF.toInt() else 0xFFFFF4EB.toInt());when(screen){Screen.MENU->menu(c);Screen.LEVELS->levels(c);Screen.GAME->game(c);Screen.SHOP->shop(c);Screen.HELP->help(c);Screen.SETTINGS->settings(c)};if(msgUntil>System.currentTimeMillis()){text(c,msg,width/2f,height*.96f,width*.038f,0xFF4D4147.toInt(),true);requestFrame()};if(screen==Screen.GAME&&anim>0L&&System.currentTimeMillis()-anim<160L)requestFrame()}
+    override fun onDraw(c:Canvas){c.drawColor(0xFFFFF4EB.toInt());when(screen){Screen.MENU->menu(c);Screen.LEVELS->levels(c);Screen.GAME->game(c);Screen.SHOP->shop(c);Screen.HELP->help(c);Screen.SETTINGS->settings(c)};if(msgUntil>System.currentTimeMillis()){text(c,msg,width/2f,height*.96f,width*.038f,0xFF4D4147.toInt(),true);requestFrame()};if(screen==Screen.GAME&&anim>0L&&System.currentTimeMillis()-anim<160L)requestFrame()}
     private fun requestFrame(){when(fps){"60"->postDelayed({invalidate()},16);"90"->postDelayed({invalidate()},11);"120"->postDelayed({invalidate()},8);else->postInvalidateOnAnimation()}}
     private fun menu(c:Canvas){text(c,"SWEET MATCH",width/2f,height*.15f,width*.08f,0xFF7B3F98.toInt(),true);text(c,"Level: $level    Coins: $coins",width/2f,height*.22f,width*.038f,0xFF7A5600.toInt(),true);btn(c,.15f,.29f,.85f,.38f,"PLAY");btn(c,.15f,.41f,.85f,.50f,"LEVELS");btn(c,.15f,.53f,.85f,.62f,"SHOP");btn(c,.15f,.65f,.85f,.74f,"SETTINGS");btn(c,.15f,.77f,.85f,.86f,"HELP")}
-    private fun levels(c:Canvas){text(c,"LEVELS",width/2f,height*.08f,width*.065f,0xFF7B3F98.toInt(),true);text(c,"Unlimited procedural levels",width/2f,height*.14f,width*.032f,0xFF4D4147.toInt(),false);for(i in 1..24){val col=(i-1)%4;val row=(i-1)/4;val l=width*.06f+col*width*.235f;val t=height*.18f+row*height*.105f;box(c,l,t,l+width*.19f,t+height*.075f,0xFF8ED081.toInt());text(c,i.toString(),l+width*.095f,t+height*.05f,width*.038f,Color.WHITE,true)};btn(c,.2f,.91f,.8f,.98f,"BACK")}
-    private fun settings(c:Canvas){text(c,"SETTINGS",width/2f,height*.09f,width*.065f,0xFF7B3F98.toInt(),true);text(c,"VIDEO / GRAPHICS",width/2f,height*.16f,width*.038f,0xFF4D4147.toInt(),true);btn(c,.12f,.20f,.88f,.28f,"FPS: $fps");btn(c,.12f,.31f,.88f,.39f,"GRAPHICS: $graphics");btn(c,.12f,.42f,.88f,.50f,"SHADOWS: "+if(shadows)"ON" else "OFF");btn(c,.12f,.53f,.88f,.61f,"LOOK: $look");btn(c,.12f,.64f,.88f,.72f,"SOUND: "+if(sound)"ON" else "OFF");btn(c,.20f,.83f,.80f,.91f,"BACK")}
-    private fun game(c:Canvas){text(c,"LEVEL $level",width*.16f,height*.06f,width*.043f,0xFF7B3F98.toInt(),true);text(c,"$score/$target",width*.50f,height*.06f,width*.038f,0xFF4D4147.toInt(),true);text(c,"MOVES $moves",width*.83f,height*.06f,width*.038f,0xFF4D4147.toInt(),true);val top=height*.12f;val cell=min(width*.112f,height*.68f/N);val left=(width-cell*N)/2f;val prog=((System.currentTimeMillis()-anim)/140f).coerceIn(0f,1f);for(r in 0 until N)for(col in 0 until N){val x=left+col*cell;val y=top+r*cell;box(c,x+1,y+1,x+cell-1,y+cell-1,if(look=="SNOW")0xFFDDECF5.toInt() else 0x22FFFFFF.toInt());if(board[r][col]>=0){var dx=0f;var dy=0f;if(prog<1f&&r==ar&&col==ac){dx=(bc-ac)*cell*prog;dy=(br-ar)*cell*prog};if(prog<1f&&r==br&&col==bc){dx=(ac-bc)*cell*prog;dy=(ar-br)*cell*prog};if(shadows&&graphics!="LOW"){paint.color=0x33000000;c.drawCircle(x+cell/2+dx+3,y+cell/2+dy+4,cell*.35f,paint)};candy(c,x+cell/2+dx,y+cell/2+dy,cell*.35f,board[r][col])}};btn(c,.04f,.83f,.30f,.92f,"HAMMER $hammer");btn(c,.35f,.83f,.65f,.92f,"SHUFFLE $shuffle");btn(c,.70f,.83f,.96f,.92f,"LOBBY");if(score>=target||moves<=0){paint.color=0xEE24152F.toInt();c.drawRect(0f,height*.30f,width.toFloat(),height*.68f,paint);text(c,if(score>=target)"LEVEL COMPLETE" else "OUT OF MOVES",width/2f,height*.43f,width*.06f,Color.WHITE,true);text(c,if(score>=target)"+"+reward()+" COINS" else "TRY AGAIN",width/2f,height*.51f,width*.045f,Color.WHITE,true);btn(c,.2f,.57f,.8f,.65f,if(score>=target)"CONTINUE" else "RETRY")}}
+    private var levelScroll=0f
+    private fun levels(c:Canvas){
+        text(c,"LEVELS",width/2f,height*.07f,width*.065f,0xFF7B3F98.toInt(),true)
+        text(c,"Scroll for unlimited levels",width/2f,height*.13f,width*.032f,0xFF4D4147.toInt(),false)
+        val top=height*.17f
+        val rowH=height*.095f
+        val firstRow=(levelScroll/rowH).toInt().coerceAtLeast(0)
+        val offset=-(levelScroll-firstRow*rowH)
+        for(row in firstRow..firstRow+7){
+            val y=top+offset+(row-firstRow)*rowH
+            if(y>height*.87f||y+height*.07f<top) continue
+            for(col in 0..3){
+                val levelNo=row*4+col+1
+                val l=width*.06f+col*width*.235f
+                box(c,l,y,l+width*.19f,y+height*.065f,0xFF8ED081.toInt())
+                text(c,levelNo.toString(),l+width*.095f,y+height*.044f,width*.034f,Color.WHITE,true)
+            }
+        }
+        btn(c,.2f,.91f,.8f,.98f,"BACK")
+    }
+    private fun settings(c:Canvas){text(c,"SETTINGS",width/2f,height*.09f,width*.065f,0xFF7B3F98.toInt(),true);text(c,"VIDEO / GRAPHICS",width/2f,height*.16f,width*.038f,0xFF4D4147.toInt(),true);btn(c,.12f,.20f,.88f,.28f,"FPS: $fps");btn(c,.12f,.31f,.88f,.39f,"GRAPHICS: $graphics");btn(c,.12f,.42f,.88f,.50f,"SHADOWS: "+if(shadows)"ON" else "OFF");btn(c,.12f,.53f,.88f,.61f,"CHARACTER STYLE: $look");btn(c,.12f,.64f,.88f,.72f,"SOUND: "+if(sound)"ON" else "OFF");btn(c,.20f,.83f,.80f,.91f,"BACK")}
+    private fun game(c:Canvas){text(c,"LEVEL $level",width*.16f,height*.06f,width*.043f,0xFF7B3F98.toInt(),true);text(c,"$score/$target",width*.50f,height*.06f,width*.038f,0xFF4D4147.toInt(),true);text(c,"MOVES $moves",width*.83f,height*.06f,width*.038f,0xFF4D4147.toInt(),true);val top=height*.12f;val cell=min(width*.112f,height*.68f/N);val left=(width-cell*N)/2f;val prog=((System.currentTimeMillis()-anim)/140f).coerceIn(0f,1f);for(r in 0 until N)for(col in 0 until N){val x=left+col*cell;val y=top+r*cell;box(c,x+1,y+1,x+cell-1,y+cell-1,0x22FFFFFF.toInt());if(board[r][col]>=0){var dx=0f;var dy=0f;if(prog<1f&&r==ar&&col==ac){dx=(bc-ac)*cell*prog;dy=(br-ar)*cell*prog};if(prog<1f&&r==br&&col==bc){dx=(ac-bc)*cell*prog;dy=(ar-br)*cell*prog};if(shadows&&graphics!="LOW"){paint.color=0x33000000;c.drawCircle(x+cell/2+dx+3,y+cell/2+dy+4,cell*.35f,paint)};candy(c,x+cell/2+dx,y+cell/2+dy,cell*.35f,board[r][col])}};helperBtn(c,.04f,.83f,.30f,.92f,0,hammer);helperBtn(c,.35f,.83f,.65f,.92f,1,shuffle);btn(c,.70f,.83f,.96f,.92f,"LOBBY");if(score>=target||moves<=0){paint.color=0xEE24152F.toInt();c.drawRect(0f,height*.30f,width.toFloat(),height*.68f,paint);text(c,if(score>=target)"LEVEL COMPLETE" else "OUT OF MOVES",width/2f,height*.43f,width*.06f,Color.WHITE,true);text(c,if(score>=target)"+"+reward()+" COINS" else "TRY AGAIN",width/2f,height*.51f,width*.045f,Color.WHITE,true);btn(c,.2f,.57f,.8f,.65f,if(score>=target)"CONTINUE" else "RETRY")}}
     private fun shop(c:Canvas){text(c,"SHOP",width/2f,height*.09f,width*.065f,0xFF7B3F98.toInt(),true);text(c,"Coins: $coins",width/2f,height*.15f,width*.038f,0xFF7A5600.toInt(),true);item(c,.18f,.22f,"HAMMER","Break a candy",hammer,30);item(c,.18f,.43f,"SHUFFLE","New board",shuffle,45);btn(c,.2f,.78f,.8f,.86f,"BACK")}
     private fun help(c:Canvas){text(c,"HOW TO PLAY",width/2f,height*.1f,width*.06f,0xFF7B3F98.toInt(),true);listOf("Swipe adjacent candies to move them.","Make 3+ matches.","Cascades give bonus points.","Reach the target before moves run out.","Levels are generated continuously.","Use helpers from the game screen.").forEachIndexed{i,s->text(c,s,width/2f,height*(.21f+i*.08f),width*.03f,0xFF4D4147.toInt(),false)};btn(c,.2f,.80f,.8f,.88f,"BACK")}
     private fun item(c:Canvas,x:Float,y:Float,n:String,d:String,count:Int,price:Int){box(c,width*x,height*y,width*(1-x),height*(y+.15f),0xFFFFFBF7.toInt());text(c,n,width*.31f,height*(y+.05f),width*.036f,0xFF5C3B63.toInt(),true);text(c,d,width*.50f,height*(y+.10f),width*.029f,0xFF6D6268.toInt(),false);text(c,"OWNED $count",width*.77f,height*(y+.05f),width*.026f,0xFF4D4147.toInt(),true);btn(c,.70f,y+.10f,.94f,y+.145f,"BUY $price")}
@@ -51,7 +70,60 @@ class GameView(context: Context) : View(context) {
     }
     private fun box(c:Canvas,l:Float,t:Float,r:Float,bb:Float,color:Int){paint.style=Paint.Style.FILL;paint.color=color;c.drawRoundRect(l,t,r,bb,14f,14f,paint)}
     private fun text(c:Canvas,s:String,x:Float,y:Float,size:Float,color:Int,bold:Boolean){paint.color=color;paint.textSize=size;paint.textAlign=Paint.Align.CENTER;paint.typeface=Typeface.create("sans",if(bold)Typeface.BOLD else Typeface.NORMAL);c.drawText(s,x,y,paint)}
-    private fun candy(c:Canvas,x:Float,y:Float,r:Float,v:Int){val cs=intArrayOf(0xFFE84A5F.toInt(),0xFFFFB84D.toInt(),0xFF57C7FF.toInt(),0xFF65D66E.toInt(),0xFFB477FF.toInt(),0xFFFF70B7.toInt());val snow=intArrayOf(0xFF4CA6D8.toInt(),0xFFE7F4FF.toInt(),0xFF78C6A3.toInt(),0xFFB4A7D6.toInt(),0xFFE9C46A.toInt(),0xFFE76F51.toInt());paint.color=if(look=="SNOW")snow[v] else cs[v];if(look=="CANDY"){val path=Path();for(i in 0..7){val a=i*Math.PI/4;val rr=if(i%2==0)r else r*.62f;val px=x+(kotlin.math.cos(a)*rr).toFloat();val py=y+(kotlin.math.sin(a)*rr).toFloat();if(i==0)path.moveTo(px,py)else path.lineTo(px,py)};path.close();c.drawPath(path,paint)}else c.drawCircle(x,y,r,paint);paint.color=0x44FFFFFF;c.drawCircle(x-r*.3f,y-r*.3f,r*.23f,paint)}
+    private fun candy(c:Canvas,x:Float,y:Float,r:Float,v:Int){
+        val cs=intArrayOf(0xFFE84A5F.toInt(),0xFFFFB84D.toInt(),0xFF57C7FF.toInt(),0xFF65D66E.toInt(),0xFFB477FF.toInt(),0xFFFF70B7.toInt())
+        paint.color=cs[v]
+        when(look){
+            "1"->c.drawCircle(x,y,r,paint)
+            "2"->{c.drawCircle(x,y,r,paint);drawFace(c,x,y,r)}
+            "3"->{val p=Path();for(i in 0..7){val a=i*Math.PI/4;val rr=if(i%2==0)r else r*.58f;val px=x+(kotlin.math.cos(a)*rr).toFloat();val py=y+(kotlin.math.sin(a)*rr).toFloat();if(i==0)p.moveTo(px,py)else p.lineTo(px,py)};p.close();c.drawPath(p,paint)}
+            "4"->{c.drawRoundRect(x-r,y-r,x+r,y+r,r*.35f,r*.35f,paint);drawFace(c,x,y,r)}
+            "5"->{c.drawCircle(x,y,r,paint);paint.color=0xFFFFFFFF.toInt();c.drawCircle(x-r*.38f,y-r*.12f,r*.14f,paint);c.drawCircle(x+r*.38f,y-r*.12f,r*.14f,paint)}
+            "6"->{val p=Path();p.moveTo(x,y-r);p.lineTo(x+r,y);p.lineTo(x,y+r);p.lineTo(x-r,y);p.close();c.drawPath(p,paint);drawFace(c,x,y,r)}
+            "7"->{c.drawCircle(x,y,r,paint);paint.color=0x33FFFFFF;for(i in 0..4)c.drawCircle(x-r*.45f+i*r*.22f,y+r*.42f,r*.09f,paint)}
+            "8"->{val p=Path();for(i in 0..11){val a=-Math.PI/2+i*Math.PI/6;val rr=if(i%2==0)r else r*.72f;val px=x+(kotlin.math.cos(a)*rr).toFloat();val py=y+(kotlin.math.sin(a)*rr).toFloat();if(i==0)p.moveTo(px,py)else p.lineTo(px,py)};p.close();c.drawPath(p,paint);drawFace(c,x,y,r)}
+            "9"->{c.drawOval(x-r,y-r*.82f,x+r,y+r*.82f,paint);paint.color=0x55FFFFFF;c.drawCircle(x-r*.3f,y-r*.3f,r*.18f,paint)}
+            else->{c.drawCircle(x,y,r,paint);paint.color=0xFF3D2B35.toInt();c.drawCircle(x-r*.28f,y-r*.05f,r*.10f,paint);c.drawCircle(x+r*.28f,y-r*.05f,r*.10f,paint)}
+        }
+        paint.color=0x44FFFFFF
+        c.drawCircle(x-r*.30f,y-r*.30f,r*.18f,paint)
+    }
+    private fun drawFace(c:Canvas,x:Float,y:Float,r:Float){
+        paint.color=0xFF3D2B35.toInt()
+        c.drawCircle(x-r*.28f,y-r*.08f,r*.08f,paint)
+        c.drawCircle(x+r*.28f,y-r*.08f,r*.08f,paint)
+        paint.style=Paint.Style.STROKE
+        paint.strokeWidth=r*.07f
+        c.drawArc(x-r*.25f,y-r*.02f,x+r*.25f,y+r*.30f,15f,150f,false,paint)
+        paint.style=Paint.Style.FILL
+    }
+    private fun helperBtn(c:Canvas,l:Float,t:Float,r:Float,bb:Float,type:Int,count:Int){
+        val x1=width*l;val y1=height*t;val x2=width*r;val y2=height*bb
+        box(c,x1,y1,x2,y2,0xFF7B3F98.toInt())
+        val cx=(x1+x2)/2f;val cy=(y1+y2)/2f
+        if(type==0)drawHammer(c,cx-10f,cy)
+        else drawShuffle(c,cx-12f,cy)
+        text(c,count.toString(),cx+width*.055f,cy+height*.014f,width*.035f,Color.WHITE,true)
+    }
+    private fun drawHammer(c:Canvas,x:Float,y:Float){
+        paint.color=0xFFE7B35A.toInt()
+        paint.strokeWidth=width*.018f
+        paint.strokeCap=Paint.Cap.ROUND
+        c.drawLine(x-2f,y+height*.025f,x+width*.035f,y-height*.025f,paint)
+        paint.color=0xFFB85C4A.toInt()
+        c.drawRoundRect(x-width*.065f,y-height*.045f,x+width*.025f,y-height*.005f,8f,8f,paint)
+        paint.strokeCap=Paint.Cap.BUTT
+    }
+    private fun drawShuffle(c:Canvas,x:Float,y:Float){
+        paint.color=Color.WHITE
+        paint.style=Paint.Style.STROKE
+        paint.strokeWidth=width*.012f
+        val p1=Path();p1.moveTo(x-width*.055f,y-height*.025f);p1.cubicTo(x-width*.01f,y-height*.025f,x-width*.005f,y+height*.025f,x+width*.045f,y+height*.025f);c.drawPath(p1,paint)
+        val p2=Path();p2.moveTo(x-width*.055f,y+height*.025f);p2.cubicTo(x-width*.01f,y+height*.025f,x-width*.005f,y-height*.025f,x+width*.045f,y-height*.025f);c.drawPath(p2,paint)
+        paint.style=Paint.Style.FILL
+        val q=Path();q.moveTo(x+width*.045f,y-height*.025f);q.lineTo(x+width*.025f,y-height*.040f);q.lineTo(x+width*.028f,y-height*.010f);q.close();c.drawPath(q,paint)
+        val q2=Path();q2.moveTo(x+width*.045f,y+height*.025f);q2.lineTo(x+width*.025f,y+height*.040f);q2.lineTo(x+width*.028f,y+height*.010f);q2.close();c.drawPath(q2,paint)
+    }
     override fun onTouchEvent(e:MotionEvent):Boolean{
         when(e.actionMasked){
             MotionEvent.ACTION_DOWN->{
@@ -71,8 +143,19 @@ class GameView(context: Context) : View(context) {
         }
         return true
     }
-    private fun tap(x:Float,y:Float){when(screen){Screen.MENU->when{y in height*.29f..height*.38f->start(level);y in height*.41f..height*.50f->screen=Screen.LEVELS;y in height*.53f..height*.62f->screen=Screen.SHOP;y in height*.65f..height*.74f->screen=Screen.SETTINGS;y in height*.77f..height*.86f->screen=Screen.HELP};Screen.LEVELS->{if(y>height*.89f)screen=Screen.MENU else{val col=((x-width*.06f)/(width*.235f)).toInt();val row=((y-height*.18f)/(height*.105f)).toInt();start(row*4+col+1)}};Screen.SETTINGS->settingsTap(y);Screen.SHOP->{when{y in height*.22f..height*.37f->buyH();y in height*.43f..height*.58f->buyS();y>height*.78f->screen=Screen.MENU}};Screen.HELP->if(y>height*.78f)screen=Screen.MENU;Screen.GAME->gameTap(x,y)};if(sound)tone.startTone(ToneGenerator.TONE_PROP_BEEP,35);invalidate()}
-    private fun settingsTap(y:Float){when{y in height*.20f..height*.28f->fps=when(fps){"60"->"90";"90"->"120";"120"->"NO CAP";else->"60"};y in height*.31f..height*.39f->graphics=when(graphics){"LOW"->"MEDIUM";"MEDIUM"->"HIGH";else->"LOW"};y in height*.42f..height*.50f->shadows=!shadows;y in height*.53f..height*.61f->look=when(look){"CLASSIC"->"SNOW";"SNOW"->"CANDY";else->"CLASSIC"};y in height*.64f..height*.72f->sound=!sound;y>height*.83f->screen=Screen.MENU};save()}
+    private fun tap(x:Float,y:Float){when(screen){Screen.MENU->when{y in height*.29f..height*.38f->start(level);y in height*.41f..height*.50f->screen=Screen.LEVELS;y in height*.53f..height*.62f->screen=Screen.SHOP;y in height*.65f..height*.74f->screen=Screen.SETTINGS;y in height*.77f..height*.86f->screen=Screen.HELP};Screen.LEVELS->{
+                val dy=y-downY
+                if(abs(dy)>18f){
+                    levelScroll=(levelScroll-dy).coerceAtLeast(0f)
+                }else if(y>height*.89f){
+                    screen=Screen.MENU
+                }else{
+                    val row=((y-height*.17f+levelScroll)/(height*.095f)).toInt()
+                    val col=((x-width*.06f)/(width*.235f)).toInt()
+                    if(col in 0..3 && row>=0) start(row*4+col+1)
+                }
+            };Screen.SETTINGS->settingsTap(y);Screen.SHOP->{when{y in height*.22f..height*.37f->buyH();y in height*.43f..height*.58f->buyS();y>height*.78f->screen=Screen.MENU}};Screen.HELP->if(y>height*.78f)screen=Screen.MENU;Screen.GAME->gameTap(x,y)};if(sound)tone.startTone(ToneGenerator.TONE_PROP_BEEP,35);invalidate()}
+    private fun settingsTap(y:Float){when{y in height*.20f..height*.28f->fps=when(fps){"60"->"90";"90"->"120";"120"->"NO CAP";else->"60"};y in height*.31f..height*.39f->graphics=when(graphics){"LOW"->"MEDIUM";"MEDIUM"->"HIGH";else->"LOW"};y in height*.42f..height*.50f->shadows=!shadows;y in height*.53f..height*.61f->look=((look.toIntOrNull() ?: 0)%10+1).toString();y in height*.64f..height*.72f->sound=!sound;y>height*.83f->screen=Screen.MENU};save()}
     private fun gameTap(x:Float,y:Float){
         if(score>=target||moves<=0){
             if(y in height*.57f..height*.65f){if(score>=target)complete()else start(level)}
