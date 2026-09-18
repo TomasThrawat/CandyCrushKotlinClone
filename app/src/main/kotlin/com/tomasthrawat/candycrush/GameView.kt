@@ -19,9 +19,6 @@ class GameView(context: Context) : View(context) {
     private val tone=ToneGenerator(AudioManager.STREAM_MUSIC,70)
     private var screen=Screen.MENU
     private var level=1; private var score=0; private var moves=25; private var target=625
-    private var unlockedLevel=prefs.getInt("unlocked_level",1).coerceAtLeast(1)
-    private var levelDragging=false
-    private var levelLastY=0f
     private var coins=prefs.getInt("coins",0); private var hammer=prefs.getInt("hammer",2); private var shuffle=prefs.getInt("shuffle",1)
     private var sr=-1; private var sc=-1; private var downX=0f; private var downY=0f
     private var anim=0L; private var ar=-1; private var ac=-1; private var br=-1; private var bc=-1
@@ -53,7 +50,7 @@ class GameView(context: Context) : View(context) {
     private var levelScroll=0f
     private fun levels(c:Canvas){
         text(c,"LEVELS",width/2f,height*.07f,width*.065f,0xFF8B5E4A.toInt(),true)
-        text(c,"Complete each level to unlock the next",width/2f,height*.13f,width*.032f,0xFF6B5265.toInt(),false)
+        text(c,"Scroll for unlimited levels",width/2f,height*.13f,width*.032f,0xFF6B5265.toInt(),false)
         val top=height*.17f
         val rowH=height*.095f
         val firstRow=(levelScroll/rowH).toInt().coerceAtLeast(0)
@@ -64,19 +61,20 @@ class GameView(context: Context) : View(context) {
             for(col in 0..3){
                 val levelNo=row*4+col+1
                 val l=width*.06f+col*width*.235f
-                val unlocked=levelNo<=unlockedLevel
-                box(c,l,y,l+width*.19f,y+height*.065f,if(unlocked)0xFFFFD6E8.toInt() else 0xFFE2DDE0.toInt())
-                text(c,if(unlocked) levelNo.toString() else "LOCKED",l+width*.095f,y+height*.044f,if(unlocked) width*.034f else width*.021f,if(unlocked) Color.WHITE else 0xFF8B8187.toInt(),true)
+                box(c,l,y,l+width*.19f,y+height*.065f,0xFFFFD6E8.toInt())
+                text(c,levelNo.toString(),l+width*.095f,y+height*.044f,width*.034f,Color.WHITE,true)
             }
         }
         btn(c,.2f,.91f,.8f,.98f,"BACK")
     }
-    private fun settings(c:Canvas){text(c,"SETTINGS",width/2f,height*.09f,width*.065f,0xFF8B5E4A.toInt(),true);text(c,"VIDEO / GRAPHICS",width/2f,height*.16f,width*.038f,0xFF6B5265.toInt(),true);btn(c,.12f,.20f,.88f,.28f,"FPS: $fps");btn(c,.12f,.31f,.88f,.39f,"GRAPHICS: $graphics");btn(c,.12f,.42f,.88f,.50f,"SHADOWS: "+if(shadows)"ON" else "OFF");btn(c,.12f,.53f,.88f,.61f,"STYLE: " + shapeName(look));btn(c,.12f,.64f,.88f,.72f,"SOUND: "+if(sound)"ON" else "OFF");btn(c,.20f,.83f,.80f,.91f,"BACK")}
+    private fun settings(c:Canvas){text(c,"SETTINGS",width/2f,height*.09f,width*.065f,0xFF8B5E4A.toInt(),true);text(c,"VIDEO / GRAPHICS",width/2f,height*.16f,width*.038f,0xFF6B5265.toInt(),true);btn(c,.12f,.20f,.88f,.28f,"FPS: $fps");btn(c,.12f,.31f,.88f,.39f,"GRAPHICS: $graphics");btn(c,.12f,.42f,.88f,.50f,"SHADOWS: "+if(shadows)"ON" else "OFF");box(c,width*.12f,height*.53f,width*.88f,height*.61f,0xFFFFD6E8.toInt())
+        text(c,"SHAPE",width*.20f,height*.577f,width*.028f,0xFF6B5265.toInt(),true)
+        drawTypeIcon(c,width*.72f,height*.57f,width*.11f,(look.toIntOrNull()?.minus(1)?.coerceIn(0,9) ?: 0))btn(c,.12f,.64f,.88f,.72f,"SOUND: "+if(sound)"ON" else "OFF");btn(c,.20f,.83f,.80f,.91f,"BACK")}
     private fun game(c:Canvas){text(c,"LEVEL $level",width*.16f,height*.06f,width*.043f,0xFF8B5E4A.toInt(),true);text(c,"$score/$target",width*.50f,height*.06f,width*.038f,0xFF6B5265.toInt(),true);text(c,"MOVES $moves",width*.83f,height*.06f,width*.038f,0xFF6B5265.toInt(),true);val top=height*.12f;val cell=min(width*.112f,height*.68f/N);val left=(width-cell*N)/2f;val rawProg=if(anim>0L)((System.currentTimeMillis()-anim)/220f).coerceIn(0f,1f) else 1f
         val prog=1f-(1f-rawProg)*(1f-rawProg)
         for(r in 0 until N)for(col in 0 until N){val x=left+col*cell;val y=top+r*cell;box(c,x+1,y+1,x+cell-1,y+cell-1,0x22FFFFFF.toInt());if(board[r][col]>=0){var dx=0f;var dy=0f;if(prog<1f&&r==ar&&col==ac){dx=(bc-ac)*cell*prog;dy=(br-ar)*cell*prog};if(prog<1f&&r==br&&col==bc){dx=(ac-bc)*cell*prog;dy=(ar-br)*cell*prog};if(shadows&&graphics!="LOW"){paint.color=0x33000000;c.drawCircle(x+cell/2+dx+3,y+cell/2+dy+4,cell*.35f,paint)};candy(c,x+cell/2+dx,y+cell/2+dy,cell*.35f,board[r][col])}};helperBtn(c,.04f,.83f,.30f,.92f,0,hammer);helperBtn(c,.35f,.83f,.65f,.92f,1,shuffle);btn(c,.70f,.83f,.96f,.92f,"LOBBY");if(score>=target||moves<=0){paint.color=0xEE24152F.toInt();c.drawRect(0f,height*.30f,width.toFloat(),height*.68f,paint);text(c,if(score>=target)"LEVEL COMPLETE" else "OUT OF MOVES",width/2f,height*.43f,width*.06f,Color.WHITE,true);text(c,if(score>=target)"+"+reward()+" COINS" else "TRY AGAIN",width/2f,height*.51f,width*.045f,Color.WHITE,true);btn(c,.2f,.57f,.8f,.65f,if(score>=target)"CONTINUE" else "RETRY")}}
     private fun shop(c:Canvas){text(c,"SHOP",width/2f,height*.09f,width*.065f,0xFF8B5E4A.toInt(),true);text(c,"Coins: $coins",width/2f,height*.15f,width*.038f,0xFF7A5600.toInt(),true);item(c,.18f,.22f,"HAMMER","Break a candy",hammer,30);item(c,.18f,.43f,"SHUFFLE","New board",shuffle,45);btn(c,.2f,.78f,.8f,.86f,"BACK")}
-    private fun help(c:Canvas){text(c,"HOW TO PLAY",width/2f,height*.1f,width*.06f,0xFF8B5E4A.toInt(),true);listOf("Swipe adjacent candies to move them.","Swaps work even without a match.","Make 3+ matches for points.","Cascades give bonus points.","Reach the target before moves run out.","Finish a level to unlock the next one.","Use helpers from the game screen.").forEachIndexed{i,s->text(c,s,width/2f,height*(.21f+i*.08f),width*.03f,0xFF6B5265.toInt(),false)};btn(c,.2f,.80f,.8f,.88f,"BACK")}
+    private fun help(c:Canvas){text(c,"HOW TO PLAY",width/2f,height*.1f,width*.06f,0xFF8B5E4A.toInt(),true);listOf("Swipe adjacent candies to move them.","Swaps work even without a match.","Make 3+ matches for points.","Cascades give bonus points.","Reach the target before moves run out.","Levels are generated continuously.","Use helpers from the game screen.").forEachIndexed{i,s->text(c,s,width/2f,height*(.21f+i*.08f),width*.03f,0xFF6B5265.toInt(),false)};btn(c,.2f,.80f,.8f,.88f,"BACK")}
     private fun drawShopIcon(c:Canvas,x:Float,y:Float,n:String){
         when(n){
             "HAMMER" -> drawHammer(c,x,y)
@@ -144,6 +142,8 @@ class GameView(context: Context) : View(context) {
             8->drawOrange(c,x,y,r)
             else->drawDonut(c,x,y,r)
         }
+        // Small friendly face makes every piece feel like a character.
+        drawFace(c,x,y+r*.05f,r*.72f)
     }
     private fun drawStrawberry(c:Canvas,x:Float,y:Float,r:Float){
         val p=Path();p.moveTo(x,y+r);p.cubicTo(x-r*1.05f,y+r*.25f,x-r*.75f,y-r*.65f,x,y-r*.35f);p.cubicTo(x+r*.75f,y-r*.65f,x+r*1.05f,y+r*.25f,x,y+r);p.close();c.drawPath(p,paint)
@@ -159,6 +159,15 @@ class GameView(context: Context) : View(context) {
     private fun drawGem(c:Canvas,x:Float,y:Float,r:Float){val p=Path();p.moveTo(x,y-r);p.lineTo(x+r*.82f,y-r*.35f);p.lineTo(x+r*.58f,y+r*.82f);p.lineTo(x-r*.58f,y+r*.82f);p.lineTo(x-r*.82f,y-r*.35f);p.close();c.drawPath(p,paint);paint.color=0x66FFFFFF;c.drawCircle(x-r*.2f,y-r*.25f,r*.16f,paint)}
     private fun drawOrange(c:Canvas,x:Float,y:Float,r:Float){c.drawCircle(x,y,r*.86f,paint);paint.color=0xFFFFC266.toInt();c.drawArc(x-r*.55f,y-r*.55f,x+r*.55f,y+r*.55f,-70f,70f,false,paint);paint.color=0xFF5C9E52.toInt();c.drawOval(x-r*.08f,y-r*.95f,x+r*.42f,y-r*.55f,paint)}
     private fun drawDonut(c:Canvas,x:Float,y:Float,r:Float){c.drawCircle(x,y,r*.86f,paint);paint.color=0xFFFFC2A1.toInt();c.drawCircle(x,y,r*.48f,paint);paint.color=0xFF6D4938.toInt();c.drawCircle(x,y,r*.20f,paint)}
+    private fun drawFace(c:Canvas,x:Float,y:Float,r:Float){
+        paint.color=0xFF3D2B35.toInt()
+        c.drawCircle(x-r*.28f,y-r*.08f,r*.08f,paint)
+        c.drawCircle(x+r*.28f,y-r*.08f,r*.08f,paint)
+        paint.style=Paint.Style.STROKE
+        paint.strokeWidth=r*.06f
+        c.drawArc(x-r*.25f,y-r*.02f,x+r*.25f,y+r*.30f,15f,150f,false,paint)
+        paint.style=Paint.Style.FILL
+    }
     private fun helperBtn(c:Canvas,l:Float,t:Float,r:Float,bb:Float,type:Int,count:Int){
         val x1=width*l;val y1=height*t;val x2=width*r;val y2=height*bb
         box(c,x1,y1,x2,y2,0xFF8B5E4A.toInt())
@@ -190,8 +199,6 @@ class GameView(context: Context) : View(context) {
         when(e.actionMasked){
             MotionEvent.ACTION_DOWN->{
                 downX=e.x; downY=e.y
-                levelDragging=false
-                if(screen==Screen.LEVELS) levelLastY=e.y
                 if(screen==Screen.GAME){
                     val top=height*.12f
                     val cell=min(width*.112f,height*.68f/N)
@@ -202,18 +209,6 @@ class GameView(context: Context) : View(context) {
                 }
                 return true
             }
-            MotionEvent.ACTION_MOVE->{
-                if(screen==Screen.LEVELS){
-                    val dy=e.y-levelLastY
-                    if(abs(dy)>0.1f){
-                        levelDragging=true
-                        levelScroll=(levelScroll-dy).coerceAtLeast(0f)
-                        levelLastY=e.y
-                        invalidate()
-                    }
-                }
-                return true
-            }
             MotionEvent.ACTION_UP->{tap(e.x,e.y);return true}
             MotionEvent.ACTION_CANCEL->{sr=-1;sc=-1;return true}
         }
@@ -221,24 +216,36 @@ class GameView(context: Context) : View(context) {
     }
     private fun tap(x:Float,y:Float){when(screen){Screen.MENU->when{y in height*.29f..height*.38f->start(level);y in height*.41f..height*.50f->screen=Screen.LEVELS;y in height*.53f..height*.62f->screen=Screen.SHOP;y in height*.65f..height*.74f->screen=Screen.SETTINGS;y in height*.77f..height*.86f->screen=Screen.HELP};Screen.LEVELS->{
                 val dy=y-downY
-                if(levelDragging || abs(dy)>18f){
-                    levelDragging=false
+                if(abs(dy)>18f){
+                    levelScroll=(levelScroll-dy).coerceAtLeast(0f)
                 }else if(y>height*.89f){
                     screen=Screen.MENU
                 }else{
                     val row=((y-height*.17f+levelScroll)/(height*.095f)).toInt()
                     val col=((x-width*.06f)/(width*.235f)).toInt()
-                    val chosen=row*4+col+1
-                    if(col in 0..3 && row>=0 && chosen<=unlockedLevel) start(chosen)
-                    else if(chosen>unlockedLevel) msg("FINISH LEVEL $unlockedLevel FIRST")
+                    if(col in 0..3 && row>=0) start(row*4+col+1)
                 }
             };Screen.SETTINGS->settingsTap(y);Screen.SHOP->{when{y in height*.22f..height*.37f->buyH();y in height*.43f..height*.58f->buyS();y>height*.78f->screen=Screen.MENU}};Screen.HELP->if(y>height*.78f)screen=Screen.MENU;Screen.GAME->gameTap(x,y)};if(sound)tone.startTone(ToneGenerator.TONE_PROP_BEEP,35);invalidate()}
-    private fun shapeName(value:String):String=when(shapeIndex(value)){
-        0->"Strawberry";1->"Lemon";2->"Blueberry";3->"Apple";4->"Flower";
-        5->"Cookie";6->"Wrapped Candy";7->"Gem";8->"Orange";else->"Donut"
+    private fun drawTypeIcon(c:Canvas,x:Float,y:Float,r:Float,type:Int){
+        paint.style=Paint.Style.FILL
+        paint.color=when(type){
+            0->0xFFFF6B8A.toInt();1->0xFFFFD447.toInt();2->0xFF5C8DFF.toInt();3->0xFFE85D5D.toInt();4->0xFFFF9FCF.toInt()
+            5->0xFFD79A5B.toInt();6->0xFFFF8A4D.toInt();7->0xFF8D6BFF.toInt();8->0xFFFFA23E.toInt();else->0xFFFF7AB8.toInt()
+        }
+        when(type){
+            0->{c.drawCircle(x,y,r*.65f,paint);c.drawCircle(x-r*.55f,y-r*.25f,r*.38f,paint);c.drawCircle(x+r*.55f,y-r*.25f,r*.38f,paint)}
+            1->{val p=Path();p.moveTo(x-r*.8f,y-r*.2f);p.lineTo(x+r*.65f,y-r*.65f);p.lineTo(x+r*.8f,y+r*.2f);p.lineTo(x-r*.65f,y+r*.65f);p.close();c.drawPath(p,paint)}
+            2->c.drawCircle(x,y,r*.7f,paint)
+            3->{val p=Path();p.moveTo(x,y-r*.75f);p.cubicTo(x-r*.9f,y-r*.35f,x-r*.7f,y+r*.65f,x,y+r*.8f);p.cubicTo(x+r*.7f,y+r*.65f,x+r*.9f,y-r*.35f,x,y-r*.75f);p.close();c.drawPath(p,paint)}
+            4->{for(i in 0..5){val a=i*Math.PI/3;c.drawCircle(x+(kotlin.math.cos(a)*r*.48f).toFloat(),y+(kotlin.math.sin(a)*r*.48f).toFloat(),r*.38f,paint)}}
+            5->c.drawCircle(x,y,r*.7f,paint)
+            6->c.drawRoundRect(x-r*.55f,y-r*.45f,x+r*.55f,y+r*.45f,r*.18f,r*.18f,paint)
+            7->{val p=Path();p.moveTo(x,y-r*.8f);p.lineTo(x+r*.65f,y-r*.25f);p.lineTo(x+r*.45f,y+r*.7f);p.lineTo(x-r*.45f,y+r*.7f);p.lineTo(x-r*.65f,y-r*.25f);p.close();c.drawPath(p,paint)}
+            8->c.drawCircle(x,y,r*.7f,paint)
+            9->{c.drawCircle(x,y,r*.7f,paint);paint.color=0xFFFFD0A8.toInt();c.drawCircle(x,y,r*.32f,paint)}
+        }
     }
-    private fun shapeIndex(value:String):Int=value.toIntOrNull()?.minus(1)?.coerceIn(0,9) ?: 0
-    private fun settingsTap(y:Float){when{y in height*.20f..height*.28f->fps=when(fps){"60"->"90";"90"->"120";"120"->"NO CAP";else->"60"};y in height*.31f..height*.39f->graphics=when(graphics){"LOW"->"MEDIUM";"MEDIUM"->"HIGH";else->"LOW"};y in height*.42f..height*.50f->shadows=!shadows;y in height*.53f..height*.61f->look=((shapeIndex(look)+1)%10+1).toString();y in height*.64f..height*.72f->sound=!sound;y>height*.83f->screen=Screen.MENU};save()}
+    private fun settingsTap(y:Float){when{y in height*.20f..height*.28f->fps=when(fps){"60"->"90";"90"->"120";"120"->"NO CAP";else->"60"};y in height*.31f..height*.39f->graphics=when(graphics){"LOW"->"MEDIUM";"MEDIUM"->"HIGH";else->"LOW"};y in height*.42f..height*.50f->shadows=!shadows;y in height*.53f..height*.61f->look=((look.toIntOrNull() ?: 0)%10+1).toString();y in height*.64f..height*.72f->sound=!sound;y>height*.83f->screen=Screen.MENU};save()}
     private fun gameTap(x:Float,y:Float){
         if(score>=target||moves<=0){
             if(y in height*.57f..height*.65f){if(score>=target)complete()else start(level)}
@@ -265,7 +272,7 @@ class GameView(context: Context) : View(context) {
         if(tr in 0 until N&&tc in 0 until N) move(sr,sc,tr,tc)
         sr=-1;sc=-1
     }
-    private fun start(l:Int){if(l>unlockedLevel){msg("FINISH LEVEL $unlockedLevel FIRST");return};level=l.coerceAtLeast(1);score=0;moves=25+level/4;target=400+level*225;fill();screen=Screen.GAME}
+    private fun start(l:Int){level=l.coerceAtLeast(1);score=0;moves=25+level/4;target=400+level*225;fill();screen=Screen.GAME}
     private fun fill(){for(r in 0 until N)for(c in 0 until N){do{board[r][c]=Random.nextInt(TYPES)}while(matchAt(r,c))}}
     private fun matchAt(r:Int,c:Int)=c>=2&&board[r][c]==board[r][c-1]&&board[r][c]==board[r][c-2]||r>=2&&board[r][c]==board[r-1][c]&&board[r][c]==board[r-2][c]
     private fun move(r1:Int,c1:Int,r2:Int,c2:Int){
@@ -281,13 +288,7 @@ class GameView(context: Context) : View(context) {
     private fun matches():Set<Pair<Int,Int>>{val o=mutableSetOf<Pair<Int,Int>>();for(r in 0 until N){var s=0;while(s<N){var e=s+1;while(e<N&&board[r][e]>=0&&board[r][e]==board[r][s])e++;if(board[r][s]>=0&&e-s>=3)for(c in s until e)o.add(r to c);s=e}};for(c in 0 until N){var s=0;while(s<N){var e=s+1;while(e<N&&board[e][c]>=0&&board[e][c]==board[s][c])e++;if(board[s][c]>=0&&e-s>=3)for(r in s until e)o.add(r to c);s=e}};return o}
     private fun resolve(){var combo=0;while(true){val m=matches();if(m.isEmpty())break;combo++;score+=m.size*25*combo;m.forEach{board[it.first][it.second]=-1};for(c in 0 until N){var w=N-1;for(r in N-1 downTo 0)if(board[r][c]>=0){board[w][c]=board[r][c];if(w!=r)board[r][c]=-1;w--};while(w>=0){board[w][c]=Random.nextInt(TYPES);w--}}}}
     private fun reward()=20+level*5
-    private fun complete(){
-        coins+=reward()
-        unlockedLevel=maxOf(unlockedLevel,level+1)
-        prefs.edit().putInt("coins",coins).putInt("unlocked_level",unlockedLevel).apply()
-        levelScroll=((level-1)/4)*height*.095f
-        screen=Screen.LEVELS
-    }
+    private fun complete(){coins+=reward();prefs.edit().putInt("coins",coins).apply();screen=Screen.LEVELS}
     private fun useH(){if(hammer<=0){msg("BUY A HAMMER");return};val top=height*.12f;val cell=min(width*.112f,height*.68f/N);val left=(width-cell*N)/2;val col=((downX-left)/cell).toInt().coerceIn(0,N-1);val row=((downY-top)/cell).toInt().coerceIn(0,N-1);board[row][col]=Random.nextInt(TYPES);hammer--;save();resolve()}
     private fun useS(){if(shuffle<=0){msg("BUY A SHUFFLE");return};fill();shuffle--;save()}
     private fun buyH(){if(coins<30)msg("NEED 30 COINS")else{coins-=30;hammer++;save()}}
