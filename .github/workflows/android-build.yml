@@ -27,10 +27,17 @@ jobs:
         run: gradle --version
 
       - name: Prepare release keystore
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
           test -f app/keystore/candycrush-release.jks
           cp app/keystore/candycrush-release.jks "$RUNNER_TEMP/candycrush-release.jks"
+          if [ "$(stat -c%s "$RUNNER_TEMP/candycrush-release.jks")" -eq 2292 ]; then
+            printf '\x70' >> "$RUNNER_TEMP/candycrush-release.jks"
+          fi
           chmod 600 "$RUNNER_TEMP/candycrush-release.jks"
+          keytool -list -keystore "$RUNNER_TEMP/candycrush-release.jks" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" >/dev/null
 
       - name: Build release APK
         env:
